@@ -1766,7 +1766,7 @@ Wrap root layout. Add theme toggle to TitleBar. CodeMirror theme switches via `o
 4. Dark mode toggle works
 5. Lighthouse score > 90
 
-**Phase 10 done.** Commit: `feat: landing page + PWA + dark mode + polish`
+**Phase 10 done.** [x] Completed. Commit: `feat: landing page + PWA + dark mode + polish`
 
 ---
 
@@ -1835,7 +1835,7 @@ Never post everywhere simultaneously. Show HN first, alone.
 - Have `CONTRIBUTING.md` ready (StorageProvider interface is the headline)
 - Vercel auto-deploys on push to main — that's your hotfix workflow
 
-**Phase 11 done.** Commit: `docs: launch prep + README + ROADMAP`
+**Phase 11 done.** [x] Completed. Commit: `docs: launch prep + README + ROADMAP`
 
 **Then: Hit "Post" on Show HN.**
 
