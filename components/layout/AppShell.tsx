@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Sidebar } from "./Sidebar"
 import { TitleBar } from "./TitleBar"
 import { SyncStatusIndicator } from "./SyncStatus"
@@ -10,11 +10,18 @@ import { ConflictModal } from "../modals/ConflictModal"
 import { useVault } from "@/hooks/useVault"
 import { useSync } from "@/hooks/useSync"
 import { Button } from "@/components/ui/button"
-import { Plus, FileText, Sparkles } from "lucide-react"
+import { Plus, FileText } from "lucide-react"
 
 export function AppShell() {
-  const { files, activeFile, setActiveFile, createFile, saveFile, deleteFile } =
-    useVault()
+  const {
+    files,
+    activeFile,
+    setActiveFile,
+    createFile,
+    saveFile,
+    renameFile,
+    deleteFile,
+  } = useVault()
   const { status, unsyncedCount, flush } = useSync()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [zenMode, setZenMode] = useState(false)
@@ -41,30 +48,45 @@ export function AppShell() {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault()
         setCommandOpen((prev) => !prev)
+        return
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+        e.preventDefault()
+        setZenMode((prev) => !prev)
+        return
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+        e.preventDefault()
+        void createFile()
+        return
+      }
+      if (e.key === "Escape") {
+        if (commandOpen) {
+          setCommandOpen(false)
+          return
+        }
+        if (zenMode) {
+          setZenMode(false)
+          return
+        }
       }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [])
+  }, [commandOpen, zenMode, createFile])
 
   const handleSave = useCallback(() => {
     void flush()
   }, [flush])
 
-  const handleCreate = useCallback(async () => {
-    const name = prompt("File name:")
-    if (name) await createFile(name)
-  }, [createFile])
-
   const activeContent = files.find((f) => f.path === activeFile)?.content ?? ""
 
-  // Empty state — first run
   if (files.length === 0) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
         <div className="flex flex-col items-center gap-6 px-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
-            <FileText className="h-6 w-6 text-stone-400 dark:text-stone-500" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+            <FileText className="h-6 w-6 text-muted-foreground" />
           </div>
           <div className="space-y-2">
             <h1 className="text-lg font-medium text-foreground">
@@ -75,7 +97,7 @@ export function AppShell() {
               in your browser.
             </p>
           </div>
-          <Button onClick={handleCreate} className="gap-2">
+          <Button onClick={() => void createFile()} className="gap-2">
             <Plus className="h-4 w-4" />
             Create first file
           </Button>
@@ -84,7 +106,7 @@ export function AppShell() {
             <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
               Ctrl+N
             </kbd>{" "}
-            anytime
+            to create a file
           </p>
         </div>
       </div>
@@ -98,8 +120,8 @@ export function AppShell() {
           files={files}
           activeFile={activeFile}
           onSelect={setActiveFile}
-          onCreate={createFile}
-          onDelete={deleteFile}
+          onCreate={() => void createFile()}
+          onDelete={(path) => void deleteFile(path)}
         />
       )}
 
@@ -108,7 +130,10 @@ export function AppShell() {
           <TitleBar
             path={activeFile}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-            onToggleZen={() => setZenMode(!zenMode)}
+            onToggleZen={() => setZenMode(true)}
+            onRename={(newPath) => {
+              if (activeFile) void renameFile(activeFile, newPath)
+            }}
           >
             <SyncStatusIndicator
               status={status}
@@ -116,6 +141,19 @@ export function AppShell() {
               onSync={handleSave}
             />
           </TitleBar>
+        )}
+
+        {zenMode && (
+          <div className="absolute top-0 right-0 left-0 z-50 flex h-10 items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setZenMode(false)}
+              className="text-xs text-muted-foreground"
+            >
+              Exit zen mode
+            </Button>
+          </div>
         )}
 
         <div className="flex-1 overflow-hidden">

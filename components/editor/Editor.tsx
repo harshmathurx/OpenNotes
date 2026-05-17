@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { createEditor } from "@/core/editor/codemirror"
 import type { EditorView } from "@codemirror/view"
 
@@ -13,18 +13,22 @@ interface EditorProps {
 export function Editor({ content, onChange, onSave }: EditorProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const [ready, setReady] = useState(false)
+  const onChangeRef = useRef(onChange)
+  const onSaveRef = useRef(onSave)
+
+  // Keep refs current so the editor's captured callbacks always call latest
+  onChangeRef.current = onChange
+  onSaveRef.current = onSave
 
   useEffect(() => {
     if (!parentRef.current || viewRef.current) return
     const view = createEditor({
       parent: parentRef.current,
       initialContent: content,
-      onChange,
-      onSave,
+      onChange: (c) => onChangeRef.current(c),
+      onSave: () => onSaveRef.current(),
     })
     viewRef.current = view
-    setReady(true)
     return () => {
       view.destroy()
       viewRef.current = null

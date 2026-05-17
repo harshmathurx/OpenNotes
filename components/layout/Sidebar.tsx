@@ -9,8 +9,8 @@ interface SidebarProps {
   files: LocalFile[]
   activeFile: string | null
   onSelect: (path: string) => void
-  onCreate: (name: string) => Promise<string>
-  onDelete: (path: string) => Promise<void>
+  onCreate: () => void
+  onDelete: (path: string) => void
 }
 
 export function Sidebar({
@@ -20,18 +20,6 @@ export function Sidebar({
   onCreate,
   onDelete,
 }: SidebarProps) {
-  const handleCreate = async () => {
-    const name = prompt("File name:")
-    if (name) await onCreate(name)
-  }
-
-  const handleDelete = async (e: React.MouseEvent, path: string) => {
-    e.stopPropagation()
-    if (confirm(`Delete ${path}? This cannot be undone.`)) {
-      await onDelete(path)
-    }
-  }
-
   return (
     <div className="flex w-[260px] flex-col border-r bg-sidebar transition-colors duration-300">
       <div className="flex h-10 shrink-0 items-center justify-between border-b px-3">
@@ -41,9 +29,9 @@ export function Sidebar({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleCreate}
+          onClick={onCreate}
           className="h-7 w-7 p-0 opacity-60 transition-opacity hover:opacity-100"
-          title="New file"
+          title="New file (Ctrl+N)"
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -73,18 +61,16 @@ export function Sidebar({
                   variant="ghost"
                   size="sm"
                   className="h-5 w-5 p-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                  onClick={(e) => handleDelete(e, file.path)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(file.path)
+                  }}
                 >
                   <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                 </Button>
               </div>
             )
           })}
-          {files.length === 0 && (
-            <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-              No files yet
-            </p>
-          )}
         </div>
       </ScrollArea>
     </div>
