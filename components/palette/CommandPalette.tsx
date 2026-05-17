@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   CommandDialog,
+  Command,
   CommandInput,
   CommandList,
   CommandItem,
   CommandGroup,
+  CommandEmpty,
 } from "@/components/ui/command"
 
 interface CommandPaletteProps {
@@ -32,16 +34,6 @@ export function CommandPalette({
     if (!open) setSearch("")
   }, [open])
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault()
-      }
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [])
-
   const handleCreate = useCallback(async () => {
     const name = search || "Untitled"
     await onCreateFile(name)
@@ -54,43 +46,46 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onClose}>
-      <CommandInput
-        placeholder="Search files..."
-        value={search}
-        onValueChange={setSearch}
-      />
-      <CommandList>
-        <CommandGroup heading="Files">
-          {filteredFiles.slice(0, 10).map((f) => (
+      <Command>
+        <CommandInput
+          placeholder="Search files..."
+          value={search}
+          onValueChange={setSearch}
+        />
+        <CommandList>
+          <CommandEmpty>No files found.</CommandEmpty>
+          <CommandGroup heading="Files">
+            {filteredFiles.slice(0, 10).map((f) => (
+              <CommandItem
+                key={f.path}
+                value={f.path}
+                onSelect={() => {
+                  onSelectFile(f.path)
+                  onClose()
+                }}
+              >
+                {f.path}
+              </CommandItem>
+            ))}
+            {search && filteredFiles.length === 0 && (
+              <CommandItem onSelect={handleCreate}>
+                Create &quot;{search}.md&quot;
+              </CommandItem>
+            )}
+          </CommandGroup>
+          <CommandGroup heading="Actions">
+            <CommandItem onSelect={handleCreate}>New file</CommandItem>
             <CommandItem
-              key={f.path}
-              value={f.path}
               onSelect={() => {
-                onSelectFile(f.path)
+                onSync()
                 onClose()
               }}
             >
-              {f.path}
+              Sync now
             </CommandItem>
-          ))}
-          {search && filteredFiles.length === 0 && (
-            <CommandItem onSelect={handleCreate}>
-              Create &quot;{search}.md&quot;
-            </CommandItem>
-          )}
-        </CommandGroup>
-        <CommandGroup heading="Actions">
-          <CommandItem onSelect={handleCreate}>New file</CommandItem>
-          <CommandItem
-            onSelect={() => {
-              onSync()
-              onClose()
-            }}
-          >
-            Sync now
-          </CommandItem>
-        </CommandGroup>
-      </CommandList>
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </CommandDialog>
   )
 }

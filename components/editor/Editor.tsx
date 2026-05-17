@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { createEditor } from "@/core/editor/codemirror"
 import type { EditorView } from "@codemirror/view"
 
@@ -13,46 +13,35 @@ interface EditorProps {
 export function Editor({ content, onChange, onSave }: EditorProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!mounted || !parentRef.current || viewRef.current) return
-
+    if (!parentRef.current || viewRef.current) return
     const view = createEditor({
       parent: parentRef.current,
       initialContent: content,
       onChange,
       onSave,
     })
-
     viewRef.current = view
+    setReady(true)
     return () => {
       view.destroy()
       viewRef.current = null
     }
-  }, [mounted])
+  }, [])
 
   useEffect(() => {
     const view = viewRef.current
-    if (view && content !== view.state.doc.toString()) {
+    if (!view) return
+    const current = view.state.doc.toString()
+    if (content !== current) {
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: content },
         scrollIntoView: false,
       })
     }
   }, [content])
-
-  if (!mounted) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading editor...</p>
-      </div>
-    )
-  }
 
   return <div ref={parentRef} className="h-full overflow-hidden" />
 }

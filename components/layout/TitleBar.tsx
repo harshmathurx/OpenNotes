@@ -17,27 +17,29 @@ export function TitleBar({
   children,
 }: TitleBarProps) {
   return (
-    <div className="flex h-10 shrink-0 items-center justify-between border-b bg-background px-3">
-      <div className="flex items-center gap-2">
+    <div className="flex h-10 shrink-0 items-center justify-between border-b bg-background px-3 transition-colors duration-300">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleSidebar}
-          className="h-7 w-7 p-0"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+          title="Toggle sidebar"
         >
           <PanelLeft className="h-4 w-4" />
         </Button>
-        <span className="text-sm text-muted-foreground">
+        <span className="truncate text-sm text-muted-foreground">
           {path || "Untitled"}
         </span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         {children}
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleZen}
-          className="h-7 w-7 p-0"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+          title="Zen mode"
         >
           <Maximize2 className="h-4 w-4" />
         </Button>
