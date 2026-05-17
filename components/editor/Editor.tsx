@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { createEditor } from "@/core/editor/codemirror"
+import { createEditor, updateFilePaths } from "@/core/editor/codemirror"
 import type { EditorView } from "@codemirror/view"
 
 interface EditorProps {
@@ -58,6 +58,12 @@ export function Editor({
       })
     }
   }, [content])
+
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view || !filePaths) return
+    updateFilePaths(view, filePaths)
+  }, [filePaths])
 
   return <div ref={parentRef} className="h-full overflow-hidden" />
 }

@@ -147,29 +147,46 @@ function slashCommandSource(
   }
 }
 
-// ── Wikilink Completions ──
-function wikilinkSource(
-  filePaths: string[]
-): (context: CompletionContext) => CompletionResult | null {
-  return (context: CompletionContext): CompletionResult | null => {
-    const before = context.matchBefore(/\[\[[^\]]*/)
-    if (!before) return null
-
-    const query = before.text.slice(2).toLowerCase()
-    const options = filePaths
-      .filter((p) => p.toLowerCase().includes(query))
-      .map((p) => ({
-        label: p,
-        apply: `[[${p}]]`,
-      }))
-
-    if (options.length === 0 && query.length > 0) return null
-
-    return {
-      from: before.from,
-      options,
-      validFor: /^\[\[[^\]]*$/,
+// ── Dynamic file paths for wikilinks ──
+const filePathsField = StateField.define<string[]>({
+  create: () => [],
+  update: (value, tr) => {
+    for (const effect of tr.effects) {
+      if (effect.is(setFilePathsEffect)) {
+        return effect.value
+      }
     }
+    return value
+  },
+})
+
+export const setFilePathsEffect = StateEffect.define<string[]>()
+
+export function updateFilePaths(view: EditorView, paths: string[]) {
+  view.dispatch({ effects: setFilePathsEffect.of(paths) })
+}
+
+// ── Wikilink Completions ──
+function wikilinkSource(context: CompletionContext): CompletionResult | null {
+  const filePaths = context.state.field(filePathsField, false) ?? []
+  const before = context.matchBefore(/\[\[[^\]]*/)
+  if (!before) return null
+
+  const query = before.text.slice(2).toLowerCase()
+  const options = filePaths
+    .filter((p) => p.toLowerCase().includes(query))
+    .map((p) => ({
+      label: p,
+      apply: `[[${p}]]`,
+    }))
+
+  if (options.length === 0 && query.length > 0) return null
+
+  return {
+    from: before.from,
+    options,
+    validFor: /^\[\[[^\]]*$/,
+    filter: false,
   }
 }
 
@@ -275,12 +292,6 @@ const syntaxHider = ViewPlugin.fromClass(SyntaxHiderValue, {
   decorations: (v) => v.decorations,
 })
 
-// ── File paths facet ──
-const filePathsFacet = StateField.define<string[]>({
-  create: () => [],
-  update: (value) => value,
-})
-
 interface CreateEditorOptions {
   parent: HTMLElement
   initialContent: string
@@ -294,8 +305,9 @@ export function createEditor(options: CreateEditorOptions): EditorView {
   const extensions = [
     basicSetup,
     markdown({ codeLanguages: [] }),
+    filePathsField.init(() => options.filePaths ?? []),
     autocompletion({
-      override: [slashCommandSource, wikilinkSource(options.filePaths ?? [])],
+      override: [slashCommandSource, wikilinkSource],
       defaultKeymap: true,
       icons: false,
     }),
