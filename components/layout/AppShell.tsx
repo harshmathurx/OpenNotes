@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Sidebar } from "./Sidebar"
 import { TitleBar } from "./TitleBar"
 import { SyncStatusIndicator } from "./SyncStatus"
@@ -10,6 +10,12 @@ import { ConflictModal } from "../modals/ConflictModal"
 import { useVault } from "@/hooks/useVault"
 import { useSync } from "@/hooks/useSync"
 import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Plus, FileText } from "lucide-react"
 
 export function AppShell() {
@@ -24,6 +30,7 @@ export function AppShell() {
   } = useVault()
   const { status, unsyncedCount, flush } = useSync()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [zenMode, setZenMode] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
   const [conflict, setConflict] = useState<{
@@ -116,20 +123,44 @@ export function AppShell() {
   return (
     <div className="flex h-screen bg-background">
       {!zenMode && sidebarOpen && (
-        <Sidebar
-          files={files}
-          activeFile={activeFile}
-          onSelect={setActiveFile}
-          onCreate={() => void createFile()}
-          onDelete={(path) => void deleteFile(path)}
-        />
+        <div className="hidden md:block">
+          <Sidebar
+            files={files}
+            activeFile={activeFile}
+            onSelect={setActiveFile}
+            onCreate={() => void createFile()}
+            onDelete={(path) => void deleteFile(path)}
+          />
+        </div>
       )}
+
+      <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Files</SheetTitle>
+          </SheetHeader>
+          <Sidebar
+            files={files}
+            activeFile={activeFile}
+            onSelect={(path) => {
+              setActiveFile(path)
+              setMobileSheetOpen(false)
+            }}
+            onCreate={() => {
+              void createFile()
+              setMobileSheetOpen(false)
+            }}
+            onDelete={(path) => void deleteFile(path)}
+          />
+        </SheetContent>
+      </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {!zenMode && (
           <TitleBar
             path={activeFile}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            onToggleMobileSidebar={() => setMobileSheetOpen(true)}
             onToggleZen={() => setZenMode(true)}
             onRename={(newPath) => {
               if (activeFile) void renameFile(activeFile, newPath)

@@ -2,13 +2,15 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { PanelLeft, Maximize2 } from "lucide-react"
+import { PanelLeft, Maximize2, Sun, Moon, Menu } from "lucide-react"
+import { useTheme } from "next-themes"
 
 interface TitleBarProps {
   path: string | null
   onToggleSidebar: () => void
   onToggleZen: () => void
   onRename: (newPath: string) => void
+  onToggleMobileSidebar?: () => void
   children?: React.ReactNode
 }
 
@@ -17,11 +19,13 @@ export function TitleBar({
   onToggleSidebar,
   onToggleZen,
   onRename,
+  onToggleMobileSidebar,
   children,
 }: TitleBarProps) {
   const [editing, setEditing] = useState(false)
   const [editValue, setEditValue] = useState(path ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
+  const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
     setEditValue(path ?? "")
@@ -58,11 +62,22 @@ export function TitleBar({
           variant="ghost"
           size="sm"
           onClick={onToggleSidebar}
-          className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+          className="hidden h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground md:flex"
           title="Toggle sidebar"
         >
           <PanelLeft className="h-4 w-4" />
         </Button>
+        {onToggleMobileSidebar && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleMobileSidebar}
+            className="flex h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground md:hidden"
+            title="Open menu"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+        )}
 
         {editing ? (
           <input
@@ -87,6 +102,19 @@ export function TitleBar({
 
       <div className="flex shrink-0 items-center gap-1">
         {children}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+          title="Toggle theme (D)"
+        >
+          {resolvedTheme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </Button>
         <Button
           variant="ghost"
           size="sm"
