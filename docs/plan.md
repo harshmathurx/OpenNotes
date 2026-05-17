@@ -1093,7 +1093,7 @@ runProviderTests(
 2. File tree populates with `.md` files from the repo
 3. Edit a file, hit `Cmd+S` (Phase 7), see commit on github.com
 
-**Phase 5 done.** Commit: `feat: GitHub OAuth + GitHubProvider`
+**Phase 5 done.** [x] Completed. Commit: `feat: GitHub and Dropbox providers, sync engine, conflict detection, command palette`
 
 ---
 
@@ -1156,7 +1156,9 @@ export function DropboxPicker({ open, onClose, onSelect }: DropboxPickerProps) {
 2. File tree populates
 3. Edit, see file in Dropbox
 
-**Phase 6 done.** Commit: `feat: Dropbox OAuth + DropboxProvider`
+**Phase 6 done.** [x] Completed.</azureparameter>
+<azparameter name="replaceAll" string="false">false</azparameter>
+<azparameter name="newString" string="true">**Phase 6 done.** [x] Completed.</azureparameter>
 
 ---
 
@@ -1303,7 +1305,7 @@ const { status, unsyncedCount, flush } = useSync();
 6. Open on another device/browser
 7. See the change
 
-**Phase 7 done.** Commit: `feat: sync engine + status indicator + Cmd+S flush`
+**Phase 7 done.** [x] Completed. Commit: `feat: sync engine + status indicator + Cmd+S flush`
 
 ---
 
@@ -1473,7 +1475,7 @@ useEffect(() => {
 4. Pick "keep mine", "keep theirs", or "merge"
 5. Data is never silently overwritten
 
-**Phase 8 done.** Commit: `feat: conflict detection + resolution UI`
+**Phase 8 done.** [x] Completed. Commit: `feat: conflict detection + resolution UI`
 
 ---
 
@@ -1617,7 +1619,7 @@ export function CommandPalette({
 3. `Cmd+K` → type "proj" → Enter → opens `projects.md`
 4. Broken links show in red
 
-**Phase 9 done.** Commit: `feat: file tree + wikilinks + command palette`
+**Phase 9 done.** [x] Completed. Commit: `feat: file tree + wikilinks + command palette`
 
 ---
 

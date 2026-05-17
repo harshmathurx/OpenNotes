@@ -7,12 +7,14 @@ interface TitleBarProps {
   path: string | null
   onToggleSidebar: () => void
   onToggleZen: () => void
+  children?: React.ReactNode
 }
 
 export function TitleBar({
   path,
   onToggleSidebar,
   onToggleZen,
+  children,
 }: TitleBarProps) {
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-b bg-background px-3">
@@ -30,6 +32,7 @@ export function TitleBar({
         </span>
       </div>
       <div className="flex items-center gap-1">
+        {children}
         <Button
           variant="ghost"
           size="sm"
