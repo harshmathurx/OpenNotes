@@ -18,6 +18,7 @@ import { SlashMenu } from "./SlashMenu"
 import { EditorBubbleMenu } from "./BubbleMenu"
 
 interface TiptapEditorProps {
+  docKey: string
   content: string
   onChange: (content: string) => void
   onSave: () => void
@@ -25,6 +26,7 @@ interface TiptapEditorProps {
 }
 
 export function TiptapEditor({
+  docKey,
   content,
   onChange,
   onSave,
@@ -39,6 +41,8 @@ export function TiptapEditor({
 
   const slashMenuPropsRef = useRef(slashMenuProps)
   const selectedIndexRef = useRef(selectedSlashIndex)
+  const lastEmittedMarkdownRef = useRef(content)
+  const isApplyingExternalContentRef = useRef(false)
 
   useEffect(() => {
     slashMenuPropsRef.current = slashMenuProps
@@ -47,6 +51,12 @@ export function TiptapEditor({
   useEffect(() => {
     selectedIndexRef.current = selectedSlashIndex
   }, [selectedSlashIndex])
+
+  useEffect(() => {
+    lastEmittedMarkdownRef.current = content
+    setSlashMenuProps(null)
+    setSelectedSlashIndex(0)
+  }, [docKey])
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -160,8 +170,10 @@ export function TiptapEditor({
     ],
     content: markdownToTiptapJSON(content),
     onUpdate: ({ editor: ed }) => {
+      if (isApplyingExternalContentRef.current) return
       const json = ed.getJSON()
       const markdown = tiptapJSONToMarkdown(json)
+      lastEmittedMarkdownRef.current = markdown
       onChange(markdown)
     },
     editorProps: {
@@ -188,10 +200,17 @@ export function TiptapEditor({
   // Sync external content changes
   useEffect(() => {
     if (!editor) return
-    const current = tiptapJSONToMarkdown(editor.getJSON())
-    if (current !== content) {
-      editor.commands.setContent(markdownToTiptapJSON(content))
-    }
+    if (content === lastEmittedMarkdownRef.current) return
+
+    isApplyingExternalContentRef.current = true
+    editor.commands.setContent(markdownToTiptapJSON(content), {
+      emitUpdate: false,
+    })
+    lastEmittedMarkdownRef.current = content
+
+    queueMicrotask(() => {
+      isApplyingExternalContentRef.current = false
+    })
   }, [content, editor])
 
   // Save shortcut

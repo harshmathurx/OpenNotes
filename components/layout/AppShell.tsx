@@ -189,6 +189,7 @@ export function AppShell() {
 
         <div className="flex-1 overflow-hidden">
           <TiptapEditor
+            docKey={activeFile ?? "none"}
             content={activeContent}
             onChange={(content) => {
               if (activeFile) saveFile(activeFile, content)

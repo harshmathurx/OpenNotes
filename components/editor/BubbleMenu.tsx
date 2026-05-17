@@ -6,7 +6,6 @@ import {
   Italic,
   Strikethrough,
   Code,
-  Link,
   Heading1,
   Heading2,
   Heading3,
