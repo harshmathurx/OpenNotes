@@ -1,6 +1,6 @@
 # OpenNotes — Agent Execution Plan
 
-> *The smallest version of a markdown editor where your files live in your GitHub. Built with taste, built fast, built on shoulders.*
+> _The smallest version of a markdown editor where your files live in your GitHub. Built with taste, built fast, built on shoulders._
 
 ---
 
@@ -18,19 +18,20 @@ This is a side project, not a startup. Three rules:
 
 ## Tech Stack (Locked)
 
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | Next.js 15 (App Router) | Static export, PWA, HN crowd knows it |
-| Rendering | Client-side only | No SSR. We're a SPA that builds with Next.js. |
-| Styling | Tailwind CSS + shadcn/ui | Components that look good by default. No CSS files to maintain. |
-| Editor | CodeMirror 6 | Best-in-class. Extensible. Works offline. |
-| Local DB | Dexie (IndexedDB) | Simpler than raw IndexedDB. No migrations. |
-| GitHub | `@octokit/rest` | Official, typed, handles pagination. |
-| Dropbox | `dropbox` (official SDK) | Supports PKCE in browser. No backend. |
-| Icons | `lucide-react` | Clean, tree-shakeable. Shadcn uses it by default. |
-| Testing | Vitest | Fast. Jest's ESM story is still awkward in 2026. |
+| Layer     | Choice                   | Why                                                             |
+| --------- | ------------------------ | --------------------------------------------------------------- |
+| Framework | Next.js 15 (App Router)  | Static export, PWA, HN crowd knows it                           |
+| Rendering | Client-side only         | No SSR. We're a SPA that builds with Next.js.                   |
+| Styling   | Tailwind CSS + shadcn/ui | Components that look good by default. No CSS files to maintain. |
+| Editor    | CodeMirror 6             | Best-in-class. Extensible. Works offline.                       |
+| Local DB  | Dexie (IndexedDB)        | Simpler than raw IndexedDB. No migrations.                      |
+| GitHub    | `@octokit/rest`          | Official, typed, handles pagination.                            |
+| Dropbox   | `dropbox` (official SDK) | Supports PKCE in browser. No backend.                           |
+| Icons     | `lucide-react`           | Clean, tree-shakeable. Shadcn uses it by default.               |
+| Testing   | Vitest                   | Fast. Jest's ESM story is still awkward in 2026.                |
 
 **Shadcn components we'll use:**
+
 - `button`, `dialog`, `dropdown-menu`, `input`, `popover`, `scroll-area`, `separator`, `sheet`, `skeleton`, `tabs`, `toast`, `tooltip`
 - Plus `cmdk` (via shadcn's `command` component) for the command palette
 
@@ -118,19 +119,19 @@ vellum/
 
 Each phase is designed to be picked up and executed by an agent independently. Phases have clear inputs (what must exist before starting) and outputs (what must exist before marking done). Phases are ordered by dependency — you can't skip a phase, but you can pause after any phase and resume later.
 
-| Phase | What | Duration |
-|---|---|---|
-| 1 | Project scaffold + shadcn setup | 2 hours |
-| 2 | Dexie schema + LocalProvider | 3 hours |
-| 3 | CodeMirror 6 editor + basic layout | 4 hours |
-| 4 | StorageProvider interface + test suite | 3 hours |
-| 5 | GitHub OAuth + GitHubProvider | 6 hours |
-| 6 | Dropbox OAuth + DropboxProvider | 4 hours |
-| 7 | Sync engine + status indicator | 6 hours |
-| 8 | Conflict detection + resolution UI | 5 hours |
-| 9 | File tree + wikilinks + command palette | 5 hours |
-| 10 | Landing page + PWA + polish | 4 hours |
-| 11 | Bug bash + launch prep | 4 hours |
+| Phase | What                                    | Duration |
+| ----- | --------------------------------------- | -------- |
+| 1     | Project scaffold + shadcn setup         | 2 hours  |
+| 2     | Dexie schema + LocalProvider            | 3 hours  |
+| 3     | CodeMirror 6 editor + basic layout      | 4 hours  |
+| 4     | StorageProvider interface + test suite  | 3 hours  |
+| 5     | GitHub OAuth + GitHubProvider           | 6 hours  |
+| 6     | Dropbox OAuth + DropboxProvider         | 4 hours  |
+| 7     | Sync engine + status indicator          | 6 hours  |
+| 8     | Conflict detection + resolution UI      | 5 hours  |
+| 9     | File tree + wikilinks + command palette | 5 hours  |
+| 10    | Landing page + PWA + polish             | 4 hours  |
+| 11    | Bug bash + launch prep                  | 4 hours  |
 
 **Total: ~46 hours.** That's 5–6 weekends of focused work. The PRD said 8 weekends; the PRD was optimistic. This is realistic.
 
@@ -179,34 +180,34 @@ npx shadcn@latest add button dialog dropdown-menu input popover \
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  distDir: 'dist',
+  output: "export",
+  distDir: "dist",
   images: { unoptimized: true }, // Required for static export
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
 ```
 
 ### Step 1.6: Configure vitest
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vitest/config"
+import react from "@vitejs/plugin-react"
+import path from "path"
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
-});
+})
 ```
 
 ### Step 1.7: Verify
@@ -216,7 +217,7 @@ pnpm dev
 # Should show the default shadcn Next.js page at localhost:3000
 ```
 
-**Phase 1 done.** Commit: `feat: scaffold project with shadcn/ui`
+**Phase 1 done.** [x] Completed. Commit: `feat: scaffold project with shadcn/ui + design system docs`
 
 ---
 
@@ -230,58 +231,58 @@ pnpm dev
 ```typescript
 // src/core/db/schema.ts
 
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie"
 
 export interface LocalFile {
-  path: string;         // Primary key
-  content: string;
-  lastModified: Date;
-  synced: boolean;
-  syncPending: boolean;
+  path: string // Primary key
+  content: string
+  lastModified: Date
+  synced: boolean
+  syncPending: boolean
 }
 
 export interface SyncRecord {
-  id?: number;
-  path: string;
-  action: 'write' | 'delete';
-  content?: string;
-  timestamp: Date;
-  status: 'pending' | 'in-progress' | 'done' | 'failed';
-  error?: string;
-  attempts: number;
+  id?: number
+  path: string
+  action: "write" | "delete"
+  content?: string
+  timestamp: Date
+  status: "pending" | "in-progress" | "done" | "failed"
+  error?: string
+  attempts: number
 }
 
 export interface ProviderConfig {
-  id: string;
-  connected: boolean;
-  config: Record<string, unknown>;
+  id: string
+  connected: boolean
+  config: Record<string, unknown>
 }
 
 export interface EncryptedTokens {
-  id: string;
-  iv: Uint8Array;
-  ciphertext: Uint8Array;
-  salt: Uint8Array;
+  id: string
+  iv: Uint8Array
+  ciphertext: Uint8Array
+  salt: Uint8Array
 }
 
 export class OpenNotesDB extends Dexie {
-  files!: Table<LocalFile>;
-  syncQueue!: Table<SyncRecord>;
-  providerConfig!: Table<ProviderConfig>;
-  tokens!: Table<EncryptedTokens>;
+  files!: Table<LocalFile>
+  syncQueue!: Table<SyncRecord>
+  providerConfig!: Table<ProviderConfig>
+  tokens!: Table<EncryptedTokens>
 
   constructor() {
-    super('vellum-vault');
+    super("vellum-vault")
     this.version(1).stores({
-      files: 'path',
-      syncQueue: '++id, path, status',
-      providerConfig: 'id',
-      tokens: 'id',
-    });
+      files: "path",
+      syncQueue: "++id, path, status",
+      providerConfig: "id",
+      tokens: "id",
+    })
   }
 }
 
-export const db = new OpenNotesDB();
+export const db = new OpenNotesDB()
 ```
 
 ### Step 2.2: Create the StorageProvider types
@@ -290,35 +291,35 @@ export const db = new OpenNotesDB();
 // src/core/storage/types.ts
 
 export interface StorageCapabilities {
-  versionHistory: boolean;
-  binaryFiles: boolean;
-  folders: boolean;
-  batchWrite: boolean;
+  versionHistory: boolean
+  binaryFiles: boolean
+  folders: boolean
+  batchWrite: boolean
 }
 
 export interface FileEntry {
-  path: string;
-  content: string;
-  etag?: string;
-  lastModified: Date;
+  path: string
+  content: string
+  etag?: string
+  lastModified: Date
 }
 
 export interface StorageProvider {
-  readonly id: string;
-  readonly name: string;
-  readonly capabilities: StorageCapabilities;
+  readonly id: string
+  readonly name: string
+  readonly capabilities: StorageCapabilities
 
-  isConnected(): boolean;
-  connect(): Promise<void>;
-  disconnect(): Promise<void>;
+  isConnected(): boolean
+  connect(): Promise<void>
+  disconnect(): Promise<void>
 
-  listFiles(): Promise<FileEntry[]>;
-  readFile(path: string): Promise<FileEntry | null>;
-  writeFile(path: string, content: string, etag?: string): Promise<FileEntry>;
-  deleteFile(path: string): Promise<void>;
+  listFiles(): Promise<FileEntry[]>
+  readFile(path: string): Promise<FileEntry | null>
+  writeFile(path: string, content: string, etag?: string): Promise<FileEntry>
+  deleteFile(path: string): Promise<void>
 
-  getVersions?(path: string): Promise<{ id: string; date: Date }[]>;
-  readVersion?(path: string, versionId: string): Promise<string>;
+  getVersions?(path: string): Promise<{ id: string; date: Date }[]>
+  readVersion?(path: string, versionId: string): Promise<string>
 }
 ```
 
@@ -327,50 +328,62 @@ export interface StorageProvider {
 ```typescript
 // src/core/storage/local.ts
 
-import { StorageProvider, StorageCapabilities, FileEntry } from './types';
-import { db } from '../db/schema';
+import { StorageProvider, StorageCapabilities, FileEntry } from "./types"
+import { db } from "../db/schema"
 
 export class LocalProvider implements StorageProvider {
-  readonly id = 'local';
-  readonly name = 'Just this browser';
+  readonly id = "local"
+  readonly name = "Just this browser"
   readonly capabilities: StorageCapabilities = {
     versionHistory: false,
     binaryFiles: false,
     folders: true,
     batchWrite: false,
-  };
+  }
 
-  isConnected(): boolean { return true; }
-  async connect(): Promise<void> { /* no-op */ }
-  async disconnect(): Promise<void> { /* no-op */ }
+  isConnected(): boolean {
+    return true
+  }
+  async connect(): Promise<void> {
+    /* no-op */
+  }
+  async disconnect(): Promise<void> {
+    /* no-op */
+  }
 
   async listFiles(): Promise<FileEntry[]> {
-    const files = await db.files.toArray();
-    return files.map(f => ({
+    const files = await db.files.toArray()
+    return files.map((f) => ({
       path: f.path,
       content: f.content,
       lastModified: f.lastModified,
-    }));
+    }))
   }
 
   async readFile(path: string): Promise<FileEntry | null> {
-    const file = await db.files.get(path);
-    if (!file) return null;
+    const file = await db.files.get(path)
+    if (!file) return null
     return {
       path: file.path,
       content: file.content,
       lastModified: file.lastModified,
-    };
+    }
   }
 
   async writeFile(path: string, content: string): Promise<FileEntry> {
-    const now = new Date();
-    await db.files.put({ path, content, lastModified: now, synced: true, syncPending: false });
-    return { path, content, lastModified: now };
+    const now = new Date()
+    await db.files.put({
+      path,
+      content,
+      lastModified: now,
+      synced: true,
+      syncPending: false,
+    })
+    return { path, content, lastModified: now }
   }
 
   async deleteFile(path: string): Promise<void> {
-    await db.files.delete(path);
+    await db.files.delete(path)
   }
 }
 ```
@@ -380,26 +393,26 @@ export class LocalProvider implements StorageProvider {
 ```typescript
 // src/hooks/useVault.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { db, LocalFile } from '@/core/db/schema';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useState, useEffect, useCallback } from "react"
+import { db, LocalFile } from "@/core/db/schema"
+import { useLiveQuery } from "dexie-react-hooks"
 
 export function useVault() {
-  const files = useLiveQuery(() => db.files.orderBy('path').toArray(), []) || [];
-  const [activeFile, setActiveFile] = useState<string | null>(null);
+  const files = useLiveQuery(() => db.files.orderBy("path").toArray(), []) || []
+  const [activeFile, setActiveFile] = useState<string | null>(null)
 
   const createFile = useCallback(async (name: string) => {
-    const path = name.endsWith('.md') ? name : `${name}.md`;
+    const path = name.endsWith(".md") ? name : `${name}.md`
     await db.files.put({
       path,
-      content: '',
+      content: "",
       lastModified: new Date(),
       synced: true,
       syncPending: false,
-    });
-    setActiveFile(path);
-    return path;
-  }, []);
+    })
+    setActiveFile(path)
+    return path
+  }, [])
 
   const saveFile = useCallback(async (path: string, content: string) => {
     await db.files.put({
@@ -408,15 +421,18 @@ export function useVault() {
       lastModified: new Date(),
       synced: false,
       syncPending: true,
-    });
-  }, []);
+    })
+  }, [])
 
-  const deleteFile = useCallback(async (path: string) => {
-    await db.files.delete(path);
-    if (activeFile === path) setActiveFile(null);
-  }, [activeFile]);
+  const deleteFile = useCallback(
+    async (path: string) => {
+      await db.files.delete(path)
+      if (activeFile === path) setActiveFile(null)
+    },
+    [activeFile]
+  )
 
-  return { files, activeFile, setActiveFile, createFile, saveFile, deleteFile };
+  return { files, activeFile, setActiveFile, createFile, saveFile, deleteFile }
 }
 ```
 
@@ -424,44 +440,47 @@ export function useVault() {
 
 ```tsx
 // src/app/page.tsx
-'use client';
+"use client"
 
-import { useState, useEffect, useRef } from 'react';
-import { useVault } from '@/hooks/useVault';
+import { useState, useEffect, useRef } from "react"
+import { useVault } from "@/hooks/useVault"
 
 export default function Home() {
-  const { files, activeFile, setActiveFile, createFile, saveFile } = useVault();
-  const [content, setContent] = useState('');
+  const { files, activeFile, setActiveFile, createFile, saveFile } = useVault()
+  const [content, setContent] = useState("")
 
   // Load active file content
   useEffect(() => {
     if (activeFile) {
-      const file = files.find(f => f.path === activeFile);
-      if (file) setContent(file.content);
+      const file = files.find((f) => f.path === activeFile)
+      if (file) setContent(file.content)
     } else {
-      setContent('');
+      setContent("")
     }
-  }, [activeFile, files]);
+  }, [activeFile, files])
 
   const handleCreate = async () => {
-    const name = prompt('File name:');
-    if (name) await createFile(name);
-  };
+    const name = prompt("File name:")
+    if (name) await createFile(name)
+  }
 
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="w-64 border-r p-4">
-        <button onClick={handleCreate} className="mb-4 px-3 py-1 bg-stone-800 text-white rounded text-sm">
+        <button
+          onClick={handleCreate}
+          className="mb-4 rounded bg-stone-800 px-3 py-1 text-sm text-white"
+        >
           + New file
         </button>
         <div className="space-y-1">
-          {files.map(f => (
+          {files.map((f) => (
             <div
               key={f.path}
               onClick={() => setActiveFile(f.path)}
-              className={`cursor-pointer px-2 py-1 rounded text-sm ${
-                activeFile === f.path ? 'bg-stone-100' : ''
+              className={`cursor-pointer rounded px-2 py-1 text-sm ${
+                activeFile === f.path ? "bg-stone-100" : ""
               }`}
             >
               {f.path}
@@ -473,16 +492,16 @@ export default function Home() {
       {/* Editor placeholder */}
       <div className="flex-1 p-8">
         <textarea
-          className="w-full h-full resize-none outline-none font-mono text-base leading-relaxed"
+          className="h-full w-full resize-none font-mono text-base leading-relaxed outline-none"
           value={content}
-          onChange={e => {
-            setContent(e.target.value);
-            if (activeFile) saveFile(activeFile, e.target.value);
+          onChange={(e) => {
+            setContent(e.target.value)
+            if (activeFile) saveFile(activeFile, e.target.value)
           }}
         />
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -516,18 +535,18 @@ pnpm add dexie-react-hooks
 ```typescript
 // src/core/editor/codemirror.ts
 
-import { EditorView, keymap, ViewUpdate } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
-import { markdown } from '@codemirror/lang-markdown';
-import { basicSetup } from 'codemirror';
-import { indentWithTab } from '@codemirror/commands';
+import { EditorView, keymap, ViewUpdate } from "@codemirror/view"
+import { EditorState } from "@codemirror/state"
+import { markdown } from "@codemirror/lang-markdown"
+import { basicSetup } from "codemirror"
+import { indentWithTab } from "@codemirror/commands"
 
 interface CreateEditorOptions {
-  parent: HTMLElement;
-  initialContent: string;
-  onChange: (content: string) => void;
-  onSave: () => void;
-  darkMode?: boolean;
+  parent: HTMLElement
+  initialContent: string
+  onChange: (content: string) => void
+  onSave: () => void
+  darkMode?: boolean
 }
 
 export function createEditor(options: CreateEditorOptions): EditorView {
@@ -537,27 +556,30 @@ export function createEditor(options: CreateEditorOptions): EditorView {
     keymap.of([
       indentWithTab,
       {
-        key: 'Mod-s',
-        run: () => { options.onSave(); return true; },
+        key: "Mod-s",
+        run: () => {
+          options.onSave()
+          return true
+        },
       },
     ]),
     EditorView.updateListener.of((update: ViewUpdate) => {
       if (update.docChanged) {
-        options.onChange(update.state.doc.toString());
+        options.onChange(update.state.doc.toString())
       }
     }),
     EditorView.theme({
-      '&': { fontSize: '16px', fontFamily: 'var(--font-mono, monospace)' },
-      '.cm-content': { padding: '32px', maxWidth: '720px', margin: '0 auto' },
-      '.cm-line': { lineHeight: '1.7', padding: '2px 0' },
-      '.cm-gutters': { display: 'none' }, // No line numbers for a writing tool
+      "&": { fontSize: "16px", fontFamily: "var(--font-mono, monospace)" },
+      ".cm-content": { padding: "32px", maxWidth: "720px", margin: "0 auto" },
+      ".cm-line": { lineHeight: "1.7", padding: "2px 0" },
+      ".cm-gutters": { display: "none" }, // No line numbers for a writing tool
     }),
-  ];
+  ]
 
   return new EditorView({
     state: EditorState.create({ doc: options.initialContent, extensions }),
     parent: options.parent,
-  });
+  })
 }
 ```
 
@@ -565,35 +587,35 @@ export function createEditor(options: CreateEditorOptions): EditorView {
 
 ```tsx
 // src/components/editor/Editor.tsx
-'use client';
+"use client"
 
-import { useEffect, useRef, useState } from 'react';
-import { createEditor } from '@/core/editor/codemirror';
-import { EditorView } from '@codemirror/view';
+import { useEffect, useRef, useState } from "react"
+import { createEditor } from "@/core/editor/codemirror"
+import { EditorView } from "@codemirror/view"
 
 interface EditorProps {
-  content: string;
-  onChange: (content: string) => void;
-  onSave: () => void;
+  content: string
+  onChange: (content: string) => void
+  onSave: () => void
 }
 
 export function Editor({ content, onChange, onSave }: EditorProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const [view, setView] = useState<EditorView | null>(null);
+  const parentRef = useRef<HTMLDivElement>(null)
+  const [view, setView] = useState<EditorView | null>(null)
 
   useEffect(() => {
-    if (!parentRef.current || view) return;
+    if (!parentRef.current || view) return
 
     const editor = createEditor({
       parent: parentRef.current,
       initialContent: content,
       onChange,
       onSave,
-    });
+    })
 
-    setView(editor);
-    return () => editor.destroy();
-  }, [parentRef.current]);
+    setView(editor)
+    return () => editor.destroy()
+  }, [parentRef.current])
 
   // Sync external content changes (file switch, etc.)
   useEffect(() => {
@@ -601,11 +623,11 @@ export function Editor({ content, onChange, onSave }: EditorProps) {
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: content },
         scrollIntoView: false,
-      });
+      })
     }
-  }, [content, view]);
+  }, [content, view])
 
-  return <div ref={parentRef} className="h-full overflow-auto" />;
+  return <div ref={parentRef} className="h-full overflow-auto" />
 }
 ```
 
@@ -613,24 +635,25 @@ export function Editor({ content, onChange, onSave }: EditorProps) {
 
 ```tsx
 // src/components/layout/AppShell.tsx
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { Sidebar } from './Sidebar';
-import { TitleBar } from './TitleBar';
-import { Editor } from '../editor/Editor';
-import { useVault } from '@/hooks/useVault';
-import { useSync } from '@/hooks/useSync';
+import { useState } from "react"
+import { Sidebar } from "./Sidebar"
+import { TitleBar } from "./TitleBar"
+import { Editor } from "../editor/Editor"
+import { useVault } from "@/hooks/useVault"
+import { useSync } from "@/hooks/useSync"
 
 export function AppShell() {
-  const { files, activeFile, setActiveFile, createFile, saveFile, deleteFile } = useVault();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [zenMode, setZenMode] = useState(false);
+  const { files, activeFile, setActiveFile, createFile, saveFile, deleteFile } =
+    useVault()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [zenMode, setZenMode] = useState(false)
 
-  const activeContent = files.find(f => f.path === activeFile)?.content || '';
+  const activeContent = files.find((f) => f.path === activeFile)?.content || ""
 
   return (
-    <div className={`flex h-screen bg-white ${zenMode ? 'zen-mode' : ''}`}>
+    <div className={`flex h-screen bg-white ${zenMode ? "zen-mode" : ""}`}>
       {!zenMode && sidebarOpen && (
         <Sidebar
           files={files}
@@ -641,7 +664,7 @@ export function AppShell() {
         />
       )}
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         {!zenMode && (
           <TitleBar
             path={activeFile}
@@ -656,13 +679,13 @@ export function AppShell() {
             onChange={(content) => activeFile && saveFile(activeFile, content)}
             onSave={() => {
               /* Phase 7: trigger sync flush */
-              console.log('Save triggered');
+              console.log("Save triggered")
             }}
           />
         </div>
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -671,44 +694,52 @@ export function AppShell() {
 ```tsx
 // src/components/layout/Sidebar.tsx
 
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Plus, FileText } from 'lucide-react';
-import { LocalFile } from '@/core/db/schema';
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
+import { Plus, FileText } from "lucide-react"
+import { LocalFile } from "@/core/db/schema"
 
 interface SidebarProps {
-  files: LocalFile[];
-  activeFile: string | null;
-  onSelect: (path: string) => void;
-  onCreate: (name: string) => Promise<string>;
-  onDelete: (path: string) => Promise<void>;
+  files: LocalFile[]
+  activeFile: string | null
+  onSelect: (path: string) => void
+  onCreate: (name: string) => Promise<string>
+  onDelete: (path: string) => Promise<void>
 }
 
-export function Sidebar({ files, activeFile, onSelect, onCreate, onDelete }: SidebarProps) {
+export function Sidebar({
+  files,
+  activeFile,
+  onSelect,
+  onCreate,
+  onDelete,
+}: SidebarProps) {
   const handleCreate = async () => {
-    const name = prompt('File name:');
-    if (name) await onCreate(name);
-  };
+    const name = prompt("File name:")
+    if (name) await onCreate(name)
+  }
 
   return (
-    <div className="w-64 border-r flex flex-col bg-stone-50">
-      <div className="p-3 border-b flex items-center justify-between">
-        <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">Files</span>
+    <div className="flex w-64 flex-col border-r bg-stone-50">
+      <div className="flex items-center justify-between border-b p-3">
+        <span className="text-xs font-medium tracking-wider text-stone-500 uppercase">
+          Files
+        </span>
         <Button variant="ghost" size="sm" onClick={handleCreate}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-0.5">
-          {files.map(file => (
+        <div className="space-y-0.5 p-2">
+          {files.map((file) => (
             <div
               key={file.path}
               onClick={() => onSelect(file.path)}
-              className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm cursor-pointer ${
+              className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm ${
                 activeFile === file.path
-                  ? 'bg-stone-200 text-stone-900'
-                  : 'text-stone-600 hover:bg-stone-100'
+                  ? "bg-stone-200 text-stone-900"
+                  : "text-stone-600 hover:bg-stone-100"
               }`}
             >
               <FileText className="h-3.5 w-3.5 text-stone-400" />
@@ -718,7 +749,7 @@ export function Sidebar({ files, activeFile, onSelect, onCreate, onDelete }: Sid
         </div>
       </ScrollArea>
     </div>
-  );
+  )
 }
 ```
 
@@ -727,25 +758,27 @@ export function Sidebar({ files, activeFile, onSelect, onCreate, onDelete }: Sid
 ```tsx
 // src/components/layout/TitleBar.tsx
 
-import { Button } from '@/components/ui/button';
-import { PanelLeft, Maximize2 } from 'lucide-react';
+import { Button } from "@/components/ui/button"
+import { PanelLeft, Maximize2 } from "lucide-react"
 
 interface TitleBarProps {
-  path: string | null;
-  onToggleSidebar: () => void;
-  onToggleZen: () => void;
+  path: string | null
+  onToggleSidebar: () => void
+  onToggleZen: () => void
 }
 
-export function TitleBar({ path, onToggleSidebar, onToggleZen }: TitleBarProps) {
+export function TitleBar({
+  path,
+  onToggleSidebar,
+  onToggleZen,
+}: TitleBarProps) {
   return (
-    <div className="h-10 border-b flex items-center justify-between px-3 bg-white">
+    <div className="flex h-10 items-center justify-between border-b bg-white px-3">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onToggleSidebar}>
           <PanelLeft className="h-4 w-4" />
         </Button>
-        <span className="text-sm text-stone-600">
-          {path || 'Untitled'}
-        </span>
+        <span className="text-sm text-stone-600">{path || "Untitled"}</span>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onToggleZen}>
@@ -753,7 +786,7 @@ export function TitleBar({ path, onToggleSidebar, onToggleZen }: TitleBarProps) 
         </Button>
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -761,12 +794,12 @@ export function TitleBar({ path, onToggleSidebar, onToggleZen }: TitleBarProps) 
 
 ```tsx
 // src/app/page.tsx
-'use client';
+"use client"
 
-import { AppShell } from '@/components/layout/AppShell';
+import { AppShell } from "@/components/layout/AppShell"
 
 export default function Home() {
-  return <AppShell />;
+  return <AppShell />
 }
 ```
 
@@ -792,8 +825,8 @@ export default function Home() {
 ```typescript
 // tests/storage/provider.test.ts
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { StorageProvider } from '@/core/storage/types';
+import { describe, it, expect, beforeEach, afterEach } from "vitest"
+import { StorageProvider } from "@/core/storage/types"
 
 export function runProviderTests(
   name: string,
@@ -802,62 +835,62 @@ export function runProviderTests(
   teardown?: () => Promise<void>
 ) {
   describe(`${name} StorageProvider`, () => {
-    let provider: StorageProvider;
+    let provider: StorageProvider
 
     beforeEach(async () => {
-      if (setup) await setup();
-      provider = createProvider();
-      await provider.connect();
-    });
+      if (setup) await setup()
+      provider = createProvider()
+      await provider.connect()
+    })
 
     afterEach(async () => {
-      await provider.disconnect();
-      if (teardown) await teardown();
-    });
+      await provider.disconnect()
+      if (teardown) await teardown()
+    })
 
-    it('starts empty', async () => {
-      const files = await provider.listFiles();
-      expect(files).toEqual([]);
-    });
+    it("starts empty", async () => {
+      const files = await provider.listFiles()
+      expect(files).toEqual([])
+    })
 
-    it('writes and reads a file', async () => {
-      await provider.writeFile('hello.md', '# Hello');
-      const file = await provider.readFile('hello.md');
-      expect(file).not.toBeNull();
-      expect(file!.content).toBe('# Hello');
-    });
+    it("writes and reads a file", async () => {
+      await provider.writeFile("hello.md", "# Hello")
+      const file = await provider.readFile("hello.md")
+      expect(file).not.toBeNull()
+      expect(file!.content).toBe("# Hello")
+    })
 
-    it('lists files', async () => {
-      await provider.writeFile('a.md', 'A');
-      await provider.writeFile('b.md', 'B');
-      const files = await provider.listFiles();
-      expect(files).toHaveLength(2);
-      expect(files.map(f => f.path)).toContain('a.md');
-      expect(files.map(f => f.path)).toContain('b.md');
-    });
+    it("lists files", async () => {
+      await provider.writeFile("a.md", "A")
+      await provider.writeFile("b.md", "B")
+      const files = await provider.listFiles()
+      expect(files).toHaveLength(2)
+      expect(files.map((f) => f.path)).toContain("a.md")
+      expect(files.map((f) => f.path)).toContain("b.md")
+    })
 
-    it('updates a file', async () => {
-      await provider.writeFile('x.md', 'v1');
-      const first = await provider.readFile('x.md');
-      await provider.writeFile('x.md', 'v2', first!.etag);
-      const second = await provider.readFile('x.md');
-      expect(second!.content).toBe('v2');
-    });
+    it("updates a file", async () => {
+      await provider.writeFile("x.md", "v1")
+      const first = await provider.readFile("x.md")
+      await provider.writeFile("x.md", "v2", first!.etag)
+      const second = await provider.readFile("x.md")
+      expect(second!.content).toBe("v2")
+    })
 
-    it('deletes a file', async () => {
-      await provider.writeFile('delete-me.md', 'bye');
-      await provider.deleteFile('delete-me.md');
-      const file = await provider.readFile('delete-me.md');
-      expect(file).toBeNull();
-    });
+    it("deletes a file", async () => {
+      await provider.writeFile("delete-me.md", "bye")
+      await provider.deleteFile("delete-me.md")
+      const file = await provider.readFile("delete-me.md")
+      expect(file).toBeNull()
+    })
 
-    it('handles paths with folders', async () => {
-      await provider.writeFile('notes/ideas.md', 'idea');
-      const file = await provider.readFile('notes/ideas.md');
-      expect(file).not.toBeNull();
-      expect(file!.content).toBe('idea');
-    });
-  });
+    it("handles paths with folders", async () => {
+      await provider.writeFile("notes/ideas.md", "idea")
+      const file = await provider.readFile("notes/ideas.md")
+      expect(file).not.toBeNull()
+      expect(file!.content).toBe("idea")
+    })
+  })
 }
 ```
 
@@ -866,19 +899,19 @@ export function runProviderTests(
 ```typescript
 // tests/storage/local.test.ts
 
-import { describe } from 'vitest';
-import { runProviderTests } from './provider.test';
-import { LocalProvider } from '@/core/storage/local';
-import { db } from '@/core/db/schema';
+import { describe } from "vitest"
+import { runProviderTests } from "./provider.test"
+import { LocalProvider } from "@/core/storage/local"
+import { db } from "@/core/db/schema"
 
 runProviderTests(
-  'Local',
+  "Local",
   () => new LocalProvider(),
   async () => {
-    await db.delete();
-    await db.open();
+    await db.delete()
+    await db.open()
   }
-);
+)
 ```
 
 ### Step 4.3: Run tests
@@ -902,42 +935,57 @@ pnpm vitest
 ```typescript
 // src/core/crypto/tokens.ts
 
-const ALGORITHM = 'AES-GCM';
-const KEY_LENGTH = 256;
-const ITERATIONS = 100_000;
+const ALGORITHM = "AES-GCM"
+const KEY_LENGTH = 256
+const ITERATIONS = 100_000
 
-async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
+async function deriveKey(
+  passphrase: string,
+  salt: Uint8Array
+): Promise<CryptoKey> {
+  const encoder = new TextEncoder()
   const keyMaterial = await crypto.subtle.importKey(
-    'raw', encoder.encode(passphrase), 'PBKDF2', false, ['deriveKey']
-  );
+    "raw",
+    encoder.encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  )
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
+    { name: "PBKDF2", salt, iterations: ITERATIONS, hash: "SHA-256" },
     keyMaterial,
     { name: ALGORITHM, length: KEY_LENGTH },
-    false, ['encrypt', 'decrypt']
-  );
+    false,
+    ["encrypt", "decrypt"]
+  )
 }
 
 export async function encryptTokens(tokens: string, passphrase: string) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(passphrase, salt);
-  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const key = await deriveKey(passphrase, salt)
+  const encoder = new TextEncoder()
   const ciphertext = await crypto.subtle.encrypt(
-    { name: ALGORITHM, iv }, key, encoder.encode(tokens)
-  );
-  return { salt, iv, ciphertext: new Uint8Array(ciphertext) };
+    { name: ALGORITHM, iv },
+    key,
+    encoder.encode(tokens)
+  )
+  return { salt, iv, ciphertext: new Uint8Array(ciphertext) }
 }
 
 export async function decryptTokens(
-  ciphertext: Uint8Array, iv: Uint8Array, salt: Uint8Array, passphrase: string
+  ciphertext: Uint8Array,
+  iv: Uint8Array,
+  salt: Uint8Array,
+  passphrase: string
 ): Promise<string> {
-  const key = await deriveKey(passphrase, salt);
+  const key = await deriveKey(passphrase, salt)
   const decrypted = await crypto.subtle.decrypt(
-    { name: ALGORITHM, iv }, key, ciphertext
-  );
-  return new TextDecoder().decode(decrypted);
+    { name: ALGORITHM, iv },
+    key,
+    ciphertext
+  )
+  return new TextDecoder().decode(decrypted)
 }
 ```
 
@@ -961,23 +1009,35 @@ Use shadcn `Dialog` + `Command` (from `cmdk`) for a searchable repo list:
 ```tsx
 // src/components/modals/RepoPicker.tsx
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Command, CommandInput, CommandList, CommandItem } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from "@/components/ui/command"
+import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 
 interface RepoPickerProps {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (owner: string, repo: string) => void;
+  open: boolean
+  onClose: () => void
+  onSelect: (owner: string, repo: string) => void
 }
 
 export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
-  const [repos, setRepos] = useState<{ name: string; owner: string }[]>([]);
-  const [query, setQuery] = useState('');
+  const [repos, setRepos] = useState<{ name: string; owner: string }[]>([])
+  const [query, setQuery] = useState("")
 
   // Fetch repos from GitHub API after auth
-  useEffect(() => { /* ... */ }, [open]);
+  useEffect(() => {
+    /* ... */
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -992,7 +1052,7 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
             onValueChange={setQuery}
           />
           <CommandList>
-            {repos.map(repo => (
+            {repos.map((repo) => (
               <CommandItem
                 key={`${repo.owner}/${repo.name}`}
                 onSelect={() => onSelect(repo.owner, repo.name)}
@@ -1002,12 +1062,12 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
             ))}
           </CommandList>
         </Command>
-        <Button variant="outline" onClick={() => onSelect('', 'vellum-vault')}>
+        <Button variant="outline" onClick={() => onSelect("", "vellum-vault")}>
           Create new: vellum-vault
         </Button>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -1017,14 +1077,14 @@ Mock `@octokit/rest` in tests, or run against a real test repo.
 
 ```typescript
 // tests/storage/github.test.ts
-import { runProviderTests } from './provider.test';
-import { GitHubProvider } from '@/core/storage/github';
+import { runProviderTests } from "./provider.test"
+import { GitHubProvider } from "@/core/storage/github"
 
 runProviderTests(
-  'GitHub',
-  () => new GitHubProvider(),
+  "GitHub",
+  () => new GitHubProvider()
   // Setup: mock octokit or use real test repo
-);
+)
 ```
 
 ### Step 5.6: Verify
@@ -1045,6 +1105,7 @@ runProviderTests(
 ### Step 6.1: Implement DropboxProvider
 
 See `src/core/storage/dropbox.ts` from the previous version of this doc. Key points:
+
 - Use PKCE OAuth (Dropbox supports this in the browser)
 - Default folder: `/Apps/OpenNotes/`
 - Handle `rev` field for conflict detection
@@ -1056,19 +1117,24 @@ Simpler than GitHub — just a text input for the folder path, default `/Apps/Op
 ```tsx
 // src/components/modals/DropboxPicker.tsx
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
 
 interface DropboxPickerProps {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (folderPath: string) => void;
+  open: boolean
+  onClose: () => void
+  onSelect: (folderPath: string) => void
 }
 
 export function DropboxPicker({ open, onClose, onSelect }: DropboxPickerProps) {
-  const [path, setPath] = useState('/Apps/OpenNotes');
+  const [path, setPath] = useState("/Apps/OpenNotes")
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -1076,11 +1142,11 @@ export function DropboxPicker({ open, onClose, onSelect }: DropboxPickerProps) {
         <DialogHeader>
           <DialogTitle>Dropbox folder</DialogTitle>
         </DialogHeader>
-        <Input value={path} onChange={e => setPath(e.target.value)} />
+        <Input value={path} onChange={(e) => setPath(e.target.value)} />
         <Button onClick={() => onSelect(path)}>Connect</Button>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -1102,6 +1168,7 @@ export function DropboxPicker({ open, onClose, onSelect }: DropboxPickerProps) {
 ### Step 7.1: Implement the sync engine
 
 See `src/core/sync/engine.ts` from the previous version of this doc. Key design:
+
 - Every keystroke → save to IndexedDB + queue sync record
 - Sync runs every 30min (GitHub) or 2min (Dropbox)
 - `Cmd+S` → `engine.flush()` → immediate sync
@@ -1113,48 +1180,51 @@ See `src/core/sync/engine.ts` from the previous version of this doc. Key design:
 ```typescript
 // src/hooks/useSync.ts
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { SyncEngine, SyncStatus } from '@/core/sync/engine';
-import { useStorage } from './useStorage';
+import { useState, useEffect, useRef, useCallback } from "react"
+import { SyncEngine, SyncStatus } from "@/core/sync/engine"
+import { useStorage } from "./useStorage"
 
 export function useSync() {
-  const [status, setStatus] = useState<SyncStatus>('idle');
-  const [unsyncedCount, setUnsyncedCount] = useState(0);
-  const engineRef = useRef<SyncEngine | null>(null);
-  const { activeProvider } = useStorage();
+  const [status, setStatus] = useState<SyncStatus>("idle")
+  const [unsyncedCount, setUnsyncedCount] = useState(0)
+  const engineRef = useRef<SyncEngine | null>(null)
+  const { activeProvider } = useStorage()
 
   useEffect(() => {
     if (!activeProvider) {
-      setStatus('idle');
-      return;
+      setStatus("idle")
+      return
     }
 
     const engine = new SyncEngine({
       provider: activeProvider,
-      cadenceMs: activeProvider.id === 'github' ? 30 * 60 * 1000 : 2 * 60 * 1000,
+      cadenceMs:
+        activeProvider.id === "github" ? 30 * 60 * 1000 : 2 * 60 * 1000,
       idleMs: 60 * 1000,
       onStatusChange: (newStatus, details) => {
-        setStatus(newStatus);
-        setUnsyncedCount(details?.unsyncedCount || 0);
+        setStatus(newStatus)
+        setUnsyncedCount(details?.unsyncedCount || 0)
       },
       onConflict: (path, local, remote) => {
-        window.dispatchEvent(new CustomEvent('sync-conflict', {
-          detail: { path, local, remote }
-        }));
+        window.dispatchEvent(
+          new CustomEvent("sync-conflict", {
+            detail: { path, local, remote },
+          })
+        )
       },
-    });
+    })
 
-    engine.start();
-    engineRef.current = engine;
+    engine.start()
+    engineRef.current = engine
 
-    return () => engine.stop();
-  }, [activeProvider]);
+    return () => engine.stop()
+  }, [activeProvider])
 
   const flush = useCallback(async () => {
-    if (engineRef.current) await engineRef.current.flush();
-  }, []);
+    if (engineRef.current) await engineRef.current.flush()
+  }, [])
 
-  return { status, unsyncedCount, flush };
+  return { status, unsyncedCount, flush }
 }
 ```
 
@@ -1163,33 +1233,45 @@ export function useSync() {
 ```tsx
 // src/components/layout/SyncStatus.tsx
 
-import { Button } from '@/components/ui/button';
-import { Cloud, CloudOff, Loader2, AlertCircle } from 'lucide-react';
-import { SyncStatus } from '@/core/sync/engine';
+import { Button } from "@/components/ui/button"
+import { Cloud, CloudOff, Loader2, AlertCircle } from "lucide-react"
+import { SyncStatus } from "@/core/sync/engine"
 
 interface SyncStatusProps {
-  status: SyncStatus;
-  count: number;
-  onSync: () => void;
+  status: SyncStatus
+  count: number
+  onSync: () => void
 }
 
-export function SyncStatusIndicator({ status, count, onSync }: SyncStatusProps) {
+export function SyncStatusIndicator({
+  status,
+  count,
+  onSync,
+}: SyncStatusProps) {
   const config = {
-    idle: { icon: Cloud, label: 'Synced', color: 'text-green-500' },
-    syncing: { icon: Loader2, label: 'Syncing...', color: 'text-blue-500 animate-spin' },
-    unsynced: { icon: AlertCircle, label: `${count} unsaved`, color: 'text-amber-500' },
-    offline: { icon: CloudOff, label: 'Offline', color: 'text-stone-400' },
-    error: { icon: AlertCircle, label: 'Error', color: 'text-red-500' },
-  };
+    idle: { icon: Cloud, label: "Synced", color: "text-green-500" },
+    syncing: {
+      icon: Loader2,
+      label: "Syncing...",
+      color: "text-blue-500 animate-spin",
+    },
+    unsynced: {
+      icon: AlertCircle,
+      label: `${count} unsaved`,
+      color: "text-amber-500",
+    },
+    offline: { icon: CloudOff, label: "Offline", color: "text-stone-400" },
+    error: { icon: AlertCircle, label: "Error", color: "text-red-500" },
+  }
 
-  const { icon: Icon, label, color } = config[status];
+  const { icon: Icon, label, color } = config[status]
 
   return (
     <Button variant="ghost" size="sm" onClick={onSync} className="gap-2">
       <Icon className={`h-4 w-4 ${color}`} />
       <span className={`text-xs ${color}`}>{label}</span>
     </Button>
-  );
+  )
 }
 ```
 
@@ -1233,8 +1315,15 @@ const { status, unsyncedCount, flush } = useSync();
 ### Step 8.1: Conflict detection in sync engine
 
 Already in `engine.ts` from Phase 7. The key check:
+
 ```typescript
-if (remote && local && remote.etag && local.synced && local.lastSyncedEtag !== remote.etag) {
+if (
+  remote &&
+  local &&
+  remote.etag &&
+  local.synced &&
+  local.lastSyncedEtag !== remote.etag
+) {
   // Conflict! Don't overwrite. Surface to user.
 }
 ```
@@ -1244,69 +1333,100 @@ if (remote && local && remote.etag && local.synced && local.lastSyncedEtag !== r
 ```tsx
 // src/components/modals/ConflictModal.tsx
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState } from "react"
 
 interface ConflictModalProps {
-  open: boolean;
-  path: string;
-  localContent: string;
-  remoteContent: string;
-  onResolve: (content: string) => void;
-  onClose: () => void;
+  open: boolean
+  path: string
+  localContent: string
+  remoteContent: string
+  onResolve: (content: string) => void
+  onClose: () => void
 }
 
-export function ConflictModal({ open, path, localContent, remoteContent, onResolve, onClose }: ConflictModalProps) {
-  const [selected, setSelected] = useState<'local' | 'remote' | 'merge'>('merge');
+export function ConflictModal({
+  open,
+  path,
+  localContent,
+  remoteContent,
+  onResolve,
+  onClose,
+}: ConflictModalProps) {
+  const [selected, setSelected] = useState<"local" | "remote" | "merge">(
+    "merge"
+  )
 
   const mergeContent = `<<<<<<< local (${path})
 ${localContent}
 =======
 ${remoteContent}
 >>>>>>> remote
-`;
+`
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
+      <DialogContent className="max-h-[80vh] max-w-3xl">
         <DialogHeader>
           <DialogTitle>Conflict: {path}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-2 mb-4">
-          <Button variant={selected === 'local' ? 'default' : 'outline'} onClick={() => setSelected('local')}>
+        <div className="mb-4 flex gap-2">
+          <Button
+            variant={selected === "local" ? "default" : "outline"}
+            onClick={() => setSelected("local")}
+          >
             Keep mine
           </Button>
-          <Button variant={selected === 'remote' ? 'default' : 'outline'} onClick={() => setSelected('remote')}>
+          <Button
+            variant={selected === "remote" ? "default" : "outline"}
+            onClick={() => setSelected("remote")}
+          >
             Keep theirs
           </Button>
-          <Button variant={selected === 'merge' ? 'default' : 'outline'} onClick={() => setSelected('merge')}>
+          <Button
+            variant={selected === "merge" ? "default" : "outline"}
+            onClick={() => setSelected("merge")}
+          >
             Merge manually
           </Button>
         </div>
 
-        <ScrollArea className="h-96 border rounded p-4 font-mono text-sm">
-          {selected === 'local' && <pre>{localContent}</pre>}
-          {selected === 'remote' && <pre>{remoteContent}</pre>}
-          {selected === 'merge' && <pre>{mergeContent}</pre>}
+        <ScrollArea className="h-96 rounded border p-4 font-mono text-sm">
+          {selected === "local" && <pre>{localContent}</pre>}
+          {selected === "remote" && <pre>{remoteContent}</pre>}
+          {selected === "merge" && <pre>{mergeContent}</pre>}
         </ScrollArea>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => {
-            const content = selected === 'local' ? localContent :
-                           selected === 'remote' ? remoteContent : mergeContent;
-            onResolve(content);
-            onClose();
-          }}>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              const content =
+                selected === "local"
+                  ? localContent
+                  : selected === "remote"
+                    ? remoteContent
+                    : mergeContent
+              onResolve(content)
+              onClose()
+            }}
+          >
             Resolve
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -1314,28 +1434,35 @@ ${remoteContent}
 
 ```tsx
 // In AppShell.tsx:
-const [conflict, setConflict] = useState<{ path: string; local: string; remote: string } | null>(null);
+const [conflict, setConflict] = useState<{
+  path: string
+  local: string
+  remote: string
+} | null>(null)
 
 useEffect(() => {
-  const handler = (e: CustomEvent) => setConflict(e.detail);
-  window.addEventListener('sync-conflict', handler as EventListener);
-  return () => window.removeEventListener('sync-conflict', handler as EventListener);
-}, []);
+  const handler = (e: CustomEvent) => setConflict(e.detail)
+  window.addEventListener("sync-conflict", handler as EventListener)
+  return () =>
+    window.removeEventListener("sync-conflict", handler as EventListener)
+}, [])
 
 // Render:
-{conflict && (
-  <ConflictModal
-    open={!!conflict}
-    path={conflict.path}
-    localContent={conflict.local}
-    remoteContent={conflict.remote}
-    onResolve={(content) => {
-      saveFile(conflict.path, content);
-      flush();
-    }}
-    onClose={() => setConflict(null)}
-  />
-)}
+{
+  conflict && (
+    <ConflictModal
+      open={!!conflict}
+      path={conflict.path}
+      localContent={conflict.local}
+      remoteContent={conflict.remote}
+      onResolve={(content) => {
+        saveFile(conflict.path, content)
+        flush()
+      }}
+      onClose={() => setConflict(null)}
+    />
+  )
+}
 ```
 
 ### Step 8.4: Test conflict scenarios
@@ -1361,20 +1488,20 @@ Group files by folder in the sidebar:
 
 ```typescript
 function groupByFolder(files: LocalFile[]): FolderNode {
-  const root: FolderNode = { name: '', children: {}, files: [] };
+  const root: FolderNode = { name: "", children: {}, files: [] }
   for (const file of files) {
-    const parts = file.path.split('/');
-    let current = root;
+    const parts = file.path.split("/")
+    let current = root
     for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
+      const part = parts[i]
       if (!current.children[part]) {
-        current.children[part] = { name: part, children: {}, files: [] };
+        current.children[part] = { name: part, children: {}, files: [] }
       }
-      current = current.children[part];
+      current = current.children[part]
     }
-    current.files.push(file);
+    current.files.push(file)
   }
-  return root;
+  return root
 }
 ```
 
@@ -1387,6 +1514,7 @@ npx shadcn@latest add collapsible
 ### Step 9.2: Wikilinks extension for CodeMirror
 
 See `src/core/editor/wikilinks.ts` from the previous version of this doc. Key points:
+
 - Parse `[[...]]` in plain text nodes (not inside code blocks)
 - Underline existing links in blue, broken links in red
 - Click → navigate to file
@@ -1399,56 +1527,86 @@ Use shadcn's `Command` component (already installed in Phase 1):
 ```tsx
 // src/components/palette/CommandPalette.tsx
 
-import { Command, CommandDialog, CommandInput, CommandList, CommandItem, CommandGroup } from '@/components/ui/command';
-import { useState, useEffect } from 'react';
-import { useVault } from '@/hooks/useVault';
-import { useSync } from '@/hooks/useSync';
+import {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandGroup,
+} from "@/components/ui/command"
+import { useState, useEffect } from "react"
+import { useVault } from "@/hooks/useVault"
+import { useSync } from "@/hooks/useSync"
 
-export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { files, setActiveFile, createFile } = useVault();
-  const { flush } = useSync();
-  const [search, setSearch] = useState('');
+export function CommandPalette({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const { files, setActiveFile, createFile } = useVault()
+  const { flush } = useSync()
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
         // Toggle — handled by parent
       }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
 
   const fileItems = files
-    .filter(f => f.path.toLowerCase().includes(search.toLowerCase()))
-    .map(f => ({
+    .filter((f) => f.path.toLowerCase().includes(search.toLowerCase()))
+    .map((f) => ({
       label: `Open: ${f.path}`,
-      action: () => { setActiveFile(f.path); onClose(); },
-    }));
+      action: () => {
+        setActiveFile(f.path)
+        onClose()
+      },
+    }))
 
   return (
     <CommandDialog open={open} onOpenChange={onClose}>
-      <CommandInput placeholder="Type a command..." value={search} onValueChange={setSearch} />
+      <CommandInput
+        placeholder="Type a command..."
+        value={search}
+        onValueChange={setSearch}
+      />
       <CommandList>
         <CommandGroup heading="Files">
-          {fileItems.map(item => (
+          {fileItems.map((item) => (
             <CommandItem key={item.label} onSelect={item.action}>
               {item.label}
             </CommandItem>
           ))}
         </CommandGroup>
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => { createFile('Untitled'); onClose(); }}>
+          <CommandItem
+            onSelect={() => {
+              createFile("Untitled")
+              onClose()
+            }}
+          >
             New file
           </CommandItem>
-          <CommandItem onSelect={() => { flush(); onClose(); }}>
+          <CommandItem
+            onSelect={() => {
+              flush()
+              onClose()
+            }}
+          >
             Sync now
           </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
-  );
+  )
 }
 ```
 
@@ -1476,49 +1634,65 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 export default function Landing() {
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="max-w-4xl mx-auto px-6 py-20 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-stone-900 mb-4">
+      <header className="mx-auto max-w-4xl px-6 py-20 text-center">
+        <h1 className="mb-4 text-4xl font-semibold tracking-tight text-stone-900">
           Your notes. Your storage.
         </h1>
-        <p className="text-lg text-stone-600 mb-8 max-w-2xl mx-auto">
-          A markdown editor that stores your files in GitHub, Dropbox, or just your browser.
-          No subscription. No lock-in. No server.
+        <p className="mx-auto mb-8 max-w-2xl text-lg text-stone-600">
+          A markdown editor that stores your files in GitHub, Dropbox, or just
+          your browser. No subscription. No lock-in. No server.
         </p>
-        <div className="flex gap-4 justify-center mb-12">
-          <a href="/" className="px-6 py-3 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800">
+        <div className="mb-12 flex justify-center gap-4">
+          <a
+            href="/"
+            className="rounded-lg bg-stone-900 px-6 py-3 font-medium text-white hover:bg-stone-800"
+          >
             Try it now
           </a>
-          <a href="https://github.com/you/vellum" className="px-6 py-3 border border-stone-300 rounded-lg font-medium hover:bg-stone-100">
+          <a
+            href="https://github.com/you/vellum"
+            className="rounded-lg border border-stone-300 px-6 py-3 font-medium hover:bg-stone-100"
+          >
             View on GitHub
           </a>
         </div>
         {/* Screenshot */}
-        <div className="rounded-xl border shadow-lg overflow-hidden max-w-3xl mx-auto">
-          <img src="/screenshot.png" alt="OpenNotes editor" className="w-full" />
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-xl border shadow-lg">
+          <img
+            src="/screenshot.png"
+            alt="OpenNotes editor"
+            className="w-full"
+          />
         </div>
       </header>
 
-      <section className="max-w-4xl mx-auto px-6 py-16">
+      <section className="mx-auto max-w-4xl px-6 py-16">
         <div className="grid grid-cols-3 gap-8">
           <div className="text-center">
-            <div className="text-2xl mb-2">🐙</div>
-            <h3 className="font-medium mb-1">GitHub</h3>
-            <p className="text-sm text-stone-600">Your notes in a private repo. Free version history.</p>
+            <div className="mb-2 text-2xl">🐙</div>
+            <h3 className="mb-1 font-medium">GitHub</h3>
+            <p className="text-sm text-stone-600">
+              Your notes in a private repo. Free version history.
+            </p>
           </div>
           <div className="text-center">
-            <div className="text-2xl mb-2">📦</div>
-            <h3 className="font-medium mb-1">Dropbox</h3>
-            <p className="text-sm text-stone-600">Syncs everywhere Dropbox does. No new accounts.</p>
+            <div className="mb-2 text-2xl">📦</div>
+            <h3 className="mb-1 font-medium">Dropbox</h3>
+            <p className="text-sm text-stone-600">
+              Syncs everywhere Dropbox does. No new accounts.
+            </p>
           </div>
           <div className="text-center">
-            <div className="text-2xl mb-2">🔒</div>
-            <h3 className="font-medium mb-1">Just this browser</h3>
-            <p className="text-sm text-stone-600">No account needed. Connect storage later.</p>
+            <div className="mb-2 text-2xl">🔒</div>
+            <h3 className="mb-1 font-medium">Just this browser</h3>
+            <p className="text-sm text-stone-600">
+              No account needed. Connect storage later.
+            </p>
           </div>
         </div>
       </section>
     </div>
-  );
+  )
 }
 ```
 
@@ -1543,12 +1717,12 @@ export default function Landing() {
 Use `next-pwa` or Workbox for service worker generation. Since we're static-exporting, add to `next.config.js`:
 
 ```javascript
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-});
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+})
 
-module.exports = withPWA(nextConfig);
+module.exports = withPWA(nextConfig)
 ```
 
 ### Step 10.3: Add dark mode
@@ -1561,16 +1735,16 @@ pnpm add next-themes
 
 ```tsx
 // src/components/providers.tsx
-'use client';
+"use client"
 
-import { ThemeProvider } from 'next-themes';
+import { ThemeProvider } from "next-themes"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       {children}
     </ThemeProvider>
-  );
+  )
 }
 ```
 
@@ -1624,11 +1798,13 @@ See the checklist in the original PRD (§9). Key items:
 ### Step 11.2: Write launch posts
 
 **Show HN title:**
+
 ```
 Show HN: OpenNotes – A markdown editor where you bring your own storage (GitHub, Dropbox, or local)
 ```
 
 **Show HN body:**
+
 ```
 I wanted something between Obsidian's portability and a simple writing tool — and I wanted to stop paying to sync my notes when I already have GitHub.
 
@@ -1680,12 +1856,14 @@ A V1 with fewer features but a beautiful, working core will get on HN. A V1 with
 **To verify a phase:** Run the verification steps at the end. If any fail, fix before moving on.
 
 **To cut scope mid-phase:**
+
 1. Dark mode → move to Phase 10, cut if behind
 2. Drag-drop images → cut entirely, V2
 3. Frontmatter rendering → cut entirely, V2
 4. Export `.md` → cut entirely, V2
 
 **Dependencies that must be installed in Phase 1:**
+
 - `dexie`, `@codemirror/*`, `@octokit/rest`, `dropbox`, `lucide-react`, `cmdk`, `next-themes`
 - shadcn components: `button`, `dialog`, `dropdown-menu`, `input`, `popover`, `scroll-area`, `separator`, `sheet`, `skeleton`, `tabs`, `toast`, `tooltip`, `command`, `collapsible`
 
@@ -1693,4 +1871,4 @@ A V1 with fewer features but a beautiful, working core will get on HN. A V1 with
 
 ---
 
-*Now build it. Phase by phase. No skipping.*
+_Now build it. Phase by phase. No skipping._
