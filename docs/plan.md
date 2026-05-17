@@ -811,7 +811,7 @@ export default function Home() {
 4. `Cmd+S` triggers console.log (sync comes in Phase 7)
 5. Zen mode button hides sidebar and title bar
 
-**Phase 3 done.** Commit: `feat: CodeMirror 6 editor + app shell layout`
+**Phase 3 done.** [x] Completed. Commit: `feat: CodeMirror 6 editor + app shell layout`
 
 ---
 
