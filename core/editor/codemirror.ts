@@ -12,6 +12,7 @@ import {
   StateField,
   StateEffect,
 } from "@codemirror/state"
+import { syntaxTree } from "@codemirror/language"
 import { markdown } from "@codemirror/lang-markdown"
 import { basicSetup } from "codemirror"
 import { indentWithTab } from "@codemirror/commands"
@@ -190,7 +191,7 @@ function wikilinkSource(context: CompletionContext): CompletionResult | null {
   }
 }
 
-// ── Header Syntax Hider ──
+// ── Header Marker Widget ──
 class HeaderMarkerWidget extends WidgetType {
   constructor(private level: number) {
     super()
@@ -211,6 +212,7 @@ class HeaderMarkerWidget extends WidgetType {
   }
 }
 
+// ── Markdown Syntax Hider + Code Block Styler ──
 class SyntaxHiderValue {
   decorations = Decoration.none
 
@@ -227,54 +229,202 @@ class SyntaxHiderValue {
     const lines = text.split("\n")
     let pos = 0
 
-    for (const line of lines) {
+    // Track state
+    let inFencedCode = false
+    let fencedCodeDepth = 0
+    let inBlockquote = false
+
+    const cursorLine = view.state.doc.lineAt(view.state.selection.main.head)
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
       const trimmed = line.trimStart()
-      const cursorLine = view.state.doc.lineAt(view.state.selection.main.head)
+      const lineStartPos = pos
       const thisLineNum = view.state.doc.lineAt(
         pos + Math.floor(line.length / 2)
       ).number
       const isActiveLine = cursorLine.number === thisLineNum
 
-      // Hide header markers on non-active lines
-      if (!isActiveLine && trimmed.match(/^#{1,3} /)) {
+      // ── Fenced Code Blocks ──
+      const fenceMatch = trimmed.match(/^(```+)(.*)$/)
+      if (fenceMatch) {
+        const fenceLen = fenceMatch[1].length
+        const indentLen = line.length - trimmed.length
+        const fenceStart = lineStartPos + indentLen
+        const fenceEnd = fenceStart + fenceMatch[0].length
+
+        if (!inFencedCode) {
+          inFencedCode = true
+          fencedCodeDepth = fenceLen
+          // Style opening fence
+          builder.add(
+            fenceStart,
+            fenceEnd,
+            Decoration.replace({
+              widget: new (class extends WidgetType {
+                toDOM() {
+                  const el = document.createElement("span")
+                  el.className = "cm-md-code-fence"
+                  el.textContent = fenceMatch[0]
+                  return el
+                }
+              })(),
+              inclusive: true,
+            })
+          )
+        } else if (fenceLen >= fencedCodeDepth) {
+          inFencedCode = false
+          // Style closing fence
+          builder.add(
+            fenceStart,
+            fenceEnd,
+            Decoration.replace({
+              widget: new (class extends WidgetType {
+                toDOM() {
+                  const el = document.createElement("span")
+                  el.className = "cm-md-code-fence"
+                  el.textContent = fenceMatch[0]
+                  return el
+                }
+              })(),
+              inclusive: true,
+            })
+          )
+        }
+      } else if (inFencedCode) {
+        // Style code content lines
+        builder.add(
+          lineStartPos,
+          lineStartPos + line.length,
+          Decoration.mark({
+            class: "cm-md-code-content",
+            inclusive: true,
+          })
+        )
+      }
+
+      // ── Blockquotes ──
+      if (!inFencedCode && trimmed.startsWith("> ")) {
+        const markerLen = 2
+        const indentLen = line.length - trimmed.length
+        builder.add(
+          lineStartPos + indentLen,
+          lineStartPos + indentLen + markerLen,
+          Decoration.mark({
+            class: "cm-md-blockquote-marker",
+          })
+        )
+        // Style the entire blockquote line
+        builder.add(
+          lineStartPos,
+          lineStartPos + line.length,
+          Decoration.mark({
+            class: "cm-md-blockquote-line",
+            inclusive: true,
+          })
+        )
+      }
+
+      // ── Horizontal Rules ──
+      if (!inFencedCode && trimmed.match(/^(---|___|\*\*\*)\s*$/)) {
+        builder.add(
+          lineStartPos,
+          lineStartPos + line.length,
+          Decoration.replace({
+            widget: new (class extends WidgetType {
+              toDOM() {
+                const el = document.createElement("hr")
+                el.className = "cm-md-hr"
+                return el
+              }
+            })(),
+            inclusive: true,
+          })
+        )
+      }
+
+      // ── Headers ──
+      if (!inFencedCode && !isActiveLine && trimmed.match(/^#{1,3} /)) {
         const level = trimmed.match(/^(#+) /)?.[1].length || 1
         const indentLen = line.length - trimmed.length
         builder.add(
-          pos + indentLen,
-          pos + indentLen + level + 1,
+          lineStartPos + indentLen,
+          lineStartPos + indentLen + level + 1,
           Decoration.replace({
             widget: new HeaderMarkerWidget(level),
           })
         )
       }
 
-      // Hide bold markers
-      const boldRegex = /\*\*(.+?)\*\*/g
-      let boldMatch
-      while ((boldMatch = boldRegex.exec(line)) !== null) {
-        builder.add(
-          pos + boldMatch.index,
-          pos + boldMatch.index + 2,
-          Decoration.mark({
-            class: "cm-md-marker-hidden",
-          })
-        )
-        builder.add(
-          pos + boldMatch.index + boldMatch[0].length - 2,
-          pos + boldMatch.index + boldMatch[0].length,
-          Decoration.mark({
-            class: "cm-md-marker-hidden",
-          })
-        )
+      // ── Bold markers ──
+      if (!inFencedCode) {
+        const boldRegex = /\*\*(.+?)\*\*/g
+        let boldMatch
+        while ((boldMatch = boldRegex.exec(line)) !== null) {
+          builder.add(
+            lineStartPos + boldMatch.index,
+            lineStartPos + boldMatch.index + 2,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+          builder.add(
+            lineStartPos + boldMatch.index + boldMatch[0].length - 2,
+            lineStartPos + boldMatch.index + boldMatch[0].length,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+        }
+
+        // ── Italic markers (single * not adjacent to another *) ──
+        const italicRegex = /(?<!\*)\*([^*]+?)\*(?!\*)/g
+        let italicMatch
+        while ((italicMatch = italicRegex.exec(line)) !== null) {
+          builder.add(
+            lineStartPos + italicMatch.index,
+            lineStartPos + italicMatch.index + 1,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+          builder.add(
+            lineStartPos + italicMatch.index + italicMatch[0].length - 1,
+            lineStartPos + italicMatch.index + italicMatch[0].length,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+        }
+
+        // ── Inline code backticks ──
+        const inlineCodeRegex = /`([^`]+)`/g
+        let codeMatch
+        while ((codeMatch = inlineCodeRegex.exec(line)) !== null) {
+          builder.add(
+            lineStartPos + codeMatch.index,
+            lineStartPos + codeMatch.index + 1,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+          builder.add(
+            lineStartPos + codeMatch.index + codeMatch[0].length - 1,
+            lineStartPos + codeMatch.index + codeMatch[0].length,
+            Decoration.mark({
+              class: "cm-md-marker-hidden",
+            })
+          )
+        }
       }
 
-      // Hide list markers (make them subtle)
-      if (trimmed.match(/^(-|\*|\d+\.) /)) {
+      // ── List markers ──
+      if (!inFencedCode && trimmed.match(/^(-|\*|\d+\.) /)) {
         const markerLen = trimmed.match(/^(-|\*|\d+\.) /)?.[0].length || 2
         const indentLen = line.length - trimmed.length
         builder.add(
-          pos + indentLen,
-          pos + indentLen + markerLen,
+          lineStartPos + indentLen,
+          lineStartPos + indentLen + markerLen,
           Decoration.mark({
             class: "cm-md-list-marker",
           })
@@ -420,9 +570,52 @@ export function createEditor(options: CreateEditorOptions): EditorView {
       // Inline code
       ".cm-inline-code": {
         backgroundColor: "var(--muted)",
-        borderRadius: "3px",
-        padding: "0 4px",
+        borderRadius: "4px",
+        padding: "2px 6px",
         fontSize: "0.9em",
+        color: "var(--foreground)",
+      },
+      // Code blocks
+      ".cm-md-code-content": {
+        backgroundColor: "var(--muted)",
+        fontFamily: "var(--font-mono, monospace) !important",
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
+        padding: "0 16px",
+      },
+      ".cm-md-code-fence": {
+        display: "inline-block",
+        color: "var(--muted-foreground)",
+        opacity: "0.35",
+        fontSize: "0.85em",
+        fontFamily: "var(--font-mono, monospace)",
+        letterSpacing: "0.05em",
+        width: "100%",
+        padding: "0 16px",
+        backgroundColor: "var(--muted)",
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
+      },
+      // Blockquotes
+      ".cm-md-blockquote-line": {
+        borderLeft: "3px solid var(--border)",
+        paddingLeft: "12px",
+        color: "var(--muted-foreground)",
+        fontStyle: "italic",
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
+      },
+      ".cm-md-blockquote-marker": {
+        color: "var(--muted-foreground)",
+        opacity: "0.35",
+      },
+      // Horizontal rules
+      ".cm-md-hr": {
+        border: "none",
+        borderTop: "1px solid var(--border)",
+        margin: "16px 0",
+        height: "1px",
+        backgroundColor: "var(--border)",
       },
       // Autocomplete panel
       ".cm-tooltip": {

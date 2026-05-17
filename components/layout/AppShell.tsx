@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Sidebar } from "./Sidebar"
 import { TitleBar } from "./TitleBar"
 import { SyncStatusIndicator } from "./SyncStatus"
-import { Editor } from "../editor/Editor"
+import { TiptapEditor } from "../editor/TiptapEditor"
 import { CommandPalette } from "../palette/CommandPalette"
 import { ConflictModal } from "../modals/ConflictModal"
 import { useVault } from "@/hooks/useVault"
@@ -188,9 +188,8 @@ export function AppShell() {
         )}
 
         <div className="flex-1 overflow-hidden">
-          <Editor
+          <TiptapEditor
             content={activeContent}
-            filePaths={files.map((f) => f.path)}
             onChange={(content) => {
               if (activeFile) saveFile(activeFile, content)
             }}

@@ -35,27 +35,37 @@ export function CommandPalette({
   }, [open])
 
   const handleCreate = useCallback(async () => {
-    const name = search || "Untitled"
+    const name = search.trim() || "Untitled"
     await onCreateFile(name)
     onClose()
   }, [search, onCreateFile, onClose])
 
-  const filteredFiles = search
-    ? files.filter((f) => f.path.toLowerCase().includes(search.toLowerCase()))
-    : files
+  const handleSync = useCallback(() => {
+    onSync()
+    onClose()
+  }, [onSync, onClose])
 
   return (
     <CommandDialog open={open} onOpenChange={onClose}>
       <Command>
         <CommandInput
-          placeholder="Search files..."
+          placeholder="Search files or type a command..."
           value={search}
           onValueChange={setSearch}
         />
         <CommandList>
-          <CommandEmpty>No files found.</CommandEmpty>
+          <CommandEmpty className="py-4 text-center">
+            <p className="text-sm text-muted-foreground">No files match.</p>
+            <button
+              onClick={() => void handleCreate()}
+              className="mt-2 text-sm font-medium text-primary hover:underline"
+            >
+              Create &quot;{search || "Untitled"}.md&quot;
+            </button>
+          </CommandEmpty>
+
           <CommandGroup heading="Files">
-            {filteredFiles.slice(0, 10).map((f) => (
+            {files.map((f) => (
               <CommandItem
                 key={f.path}
                 value={f.path}
@@ -67,20 +77,16 @@ export function CommandPalette({
                 {f.path}
               </CommandItem>
             ))}
-            {search && filteredFiles.length === 0 && (
-              <CommandItem onSelect={handleCreate}>
-                Create &quot;{search}.md&quot;
-              </CommandItem>
-            )}
           </CommandGroup>
+
           <CommandGroup heading="Actions">
-            <CommandItem onSelect={handleCreate}>New file</CommandItem>
             <CommandItem
-              onSelect={() => {
-                onSync()
-                onClose()
-              }}
+              value={`Create new file ${search}`}
+              onSelect={() => void handleCreate()}
             >
+              New file{search ? ` "${search}"` : ""}
+            </CommandItem>
+            <CommandItem value="Sync now" onSelect={handleSync}>
               Sync now
             </CommandItem>
           </CommandGroup>
