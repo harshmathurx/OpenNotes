@@ -163,6 +163,7 @@ export function AppShell() {
               if (activeFile) saveFile(activeFile, content)
             }}
             onSave={handleSave}
+            onNavigate={setActiveFile}
           />
         </div>
       </div>

@@ -16,7 +16,37 @@ import { markdown } from "@codemirror/lang-markdown"
 import { basicSetup } from "codemirror"
 import { indentWithTab } from "@codemirror/commands"
 
-// Slash command menu widget
+// ── Wikilink Widget ──
+class WikilinkWidget extends WidgetType {
+  constructor(
+    private text: string,
+    private onNavigate: (path: string) => void
+  ) {
+    super()
+  }
+
+  toDOM() {
+    const span = document.createElement("span")
+    span.className = "cm-wikilink"
+    span.textContent = this.text
+    span.style.cssText = `
+      color: var(--sidebar-primary, #16a34a);
+      text-decoration: underline;
+      text-decoration-color: var(--sidebar-primary, #16a34a);
+      text-underline-offset: 2px;
+      cursor: pointer;
+      font-weight: 500;
+    `
+    span.addEventListener("click", (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      this.onNavigate(this.text)
+    })
+    return span
+  }
+}
+
+// ── Slash Menu Widget ──
 class SlashMenuWidget extends WidgetType {
   constructor(
     private options: Array<{ label: string; shortcut: string; insert: string }>
@@ -77,7 +107,7 @@ const slashOptions = [
   { label: "Divider", shortcut: "hr", insert: "---\n" },
 ]
 
-// Show/hide slash menu effect
+// ── Slash Menu State ──
 const showSlashMenu = StateEffect.define<boolean>()
 const slashMenuField = StateField.define<boolean>({
   create: () => false,
@@ -99,7 +129,6 @@ class SlashMenuPluginValue {
   constructor(view: EditorView) {
     this.compute(view)
   }
-
   update(update: ViewUpdate) {
     this.compute(update.view)
   }
@@ -130,30 +159,43 @@ const slashMenuPlugin = ViewPlugin.fromClass(SlashMenuPluginValue, {
   decorations: (v) => v.decorations,
 })
 
-// Key handler for slash menu
-const slashKeymap = keymap.of([
-  {
-    key: "/",
-    run: (view) => {
-      const pos = view.state.selection.main.head
-      const line = view.state.doc.lineAt(pos)
-      const before = line.text.slice(0, pos - line.from)
-      if (before === "") {
-        view.dispatch({ effects: showSlashMenu.of(true) })
-      }
-      return false
-    },
-  },
-  {
-    key: "Escape",
-    run: (view) => {
-      view.dispatch({ effects: showSlashMenu.of(false) })
-      return true
-    },
-  },
-])
+// ── Wikilink Plugin ──
+class WikilinkPluginValue {
+  decorations = Decoration.none
 
-// Markdown syntax hiding for headers
+  constructor(view: EditorView) {
+    this.compute(view)
+  }
+  update(update: ViewUpdate) {
+    this.compute(update.view)
+  }
+
+  private compute(view: EditorView) {
+    const builder = new RangeSetBuilder<Decoration>()
+    const text = view.state.doc.toString()
+    const regex = /\[\[([^\]]+)\]\]/g
+    let match
+    while ((match = regex.exec(text)) !== null) {
+      const from = match.index
+      const to = from + match[0].length
+      builder.add(
+        from,
+        to,
+        Decoration.replace({
+          widget: new WikilinkWidget(match[1], () => {}),
+          inclusive: true,
+        })
+      )
+    }
+    this.decorations = builder.finish()
+  }
+}
+
+const wikilinkPlugin = ViewPlugin.fromClass(WikilinkPluginValue, {
+  decorations: (v) => v.decorations,
+})
+
+// ── Header Syntax Hider ──
 class HeaderMarkerWidget extends WidgetType {
   constructor(private level: number) {
     super()
@@ -164,9 +206,11 @@ class HeaderMarkerWidget extends WidgetType {
     span.textContent = "#".repeat(this.level) + " "
     span.style.cssText = `
       color: var(--muted-foreground, #78716c);
-      opacity: 0.4;
+      opacity: 0.3;
       font-weight: 400;
+      font-size: 0.75em;
       font-family: var(--font-sans, system-ui);
+      vertical-align: middle;
     `
     return span
   }
@@ -178,7 +222,6 @@ class SyntaxHiderValue {
   constructor(view: EditorView) {
     this.compute(view)
   }
-
   update(update: ViewUpdate) {
     this.compute(update.view)
   }
@@ -192,9 +235,12 @@ class SyntaxHiderValue {
     for (const line of lines) {
       const trimmed = line.trimStart()
       const cursorLine = view.state.doc.lineAt(view.state.selection.main.head)
-      const thisLine = view.state.doc.lineAt(pos + Math.floor(line.length / 2))
-      const isActiveLine = cursorLine.number === thisLine.number
+      const thisLineNum = view.state.doc.lineAt(
+        pos + Math.floor(line.length / 2)
+      ).number
+      const isActiveLine = cursorLine.number === thisLineNum
 
+      // Hide header markers on non-active lines
       if (!isActiveLine && trimmed.match(/^#{1,3} /)) {
         const level = trimmed.match(/^(#+) /)?.[1].length || 1
         const indentLen = line.length - trimmed.length
@@ -207,24 +253,37 @@ class SyntaxHiderValue {
         )
       }
 
-      const boldMatches = [...line.matchAll(/\*\*(.+?)\*\*/g)]
-      for (const match of boldMatches) {
-        if (match.index !== undefined) {
-          builder.add(
-            pos + match.index,
-            pos + match.index + 2,
-            Decoration.mark({
-              class: "cm-md-marker-hidden",
-            })
-          )
-          builder.add(
-            pos + match.index + match[0].length - 2,
-            pos + match.index + match[0].length,
-            Decoration.mark({
-              class: "cm-md-marker-hidden",
-            })
-          )
-        }
+      // Hide bold markers
+      const boldRegex = /\*\*(.+?)\*\*/g
+      let boldMatch
+      while ((boldMatch = boldRegex.exec(line)) !== null) {
+        builder.add(
+          pos + boldMatch.index,
+          pos + boldMatch.index + 2,
+          Decoration.mark({
+            class: "cm-md-marker-hidden",
+          })
+        )
+        builder.add(
+          pos + boldMatch.index + boldMatch[0].length - 2,
+          pos + boldMatch.index + boldMatch[0].length,
+          Decoration.mark({
+            class: "cm-md-marker-hidden",
+          })
+        )
+      }
+
+      // Hide list markers (make them subtle)
+      if (trimmed.match(/^(-|\*|\d+\.) /)) {
+        const markerLen = trimmed.match(/^(-|\*|\d+\.) /)?.[0].length || 2
+        const indentLen = line.length - trimmed.length
+        builder.add(
+          pos + indentLen,
+          pos + indentLen + markerLen,
+          Decoration.mark({
+            class: "cm-md-list-marker",
+          })
+        )
       }
 
       pos += line.length + 1
@@ -243,6 +302,7 @@ interface CreateEditorOptions {
   initialContent: string
   onChange: (content: string) => void
   onSave: () => void
+  onNavigate?: (path: string) => void
 }
 
 export function createEditor(options: CreateEditorOptions): EditorView {
@@ -251,7 +311,7 @@ export function createEditor(options: CreateEditorOptions): EditorView {
     markdown({ codeLanguages: [] }),
     slashMenuField,
     slashMenuPlugin,
-    slashKeymap,
+    wikilinkPlugin,
     syntaxHider,
     keymap.of([
       indentWithTab,
@@ -283,6 +343,19 @@ export function createEditor(options: CreateEditorOptions): EditorView {
         },
       },
     ]),
+    EditorView.domEventHandlers({
+      click: (event, view) => {
+        const target = event.target as HTMLElement
+        if (target.classList.contains("cm-wikilink")) {
+          const path = target.textContent || ""
+          if (options.onNavigate) {
+            options.onNavigate(path)
+          }
+          return true
+        }
+        return false
+      },
+    }),
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         options.onChange(update.state.doc.toString())
@@ -314,6 +387,7 @@ export function createEditor(options: CreateEditorOptions): EditorView {
       },
       ".cm-activeLine": { backgroundColor: "transparent" },
       ".cm-selectionBackground": { backgroundColor: "var(--accent)" },
+      // Headers
       ".cm-md-header-1": {
         fontSize: "1.75em",
         fontWeight: "700",
@@ -329,13 +403,21 @@ export function createEditor(options: CreateEditorOptions): EditorView {
         fontWeight: "600",
         fontFamily: "var(--font-sans, sans-serif)",
       },
+      // Hidden markers
       ".cm-md-marker-hidden": {
         color: "var(--muted-foreground)",
-        opacity: "0.3",
-        fontSize: "0.85em",
+        opacity: "0.25",
+        fontSize: "0.8em",
       },
+      // List markers
+      ".cm-md-list-marker": {
+        color: "var(--muted-foreground)",
+        opacity: "0.5",
+      },
+      // Bold / italic
       ".cm-strong": { fontWeight: "700" },
       ".cm-emphasis": { fontStyle: "italic" },
+      // Inline code
       ".cm-inline-code": {
         backgroundColor: "var(--muted)",
         borderRadius: "3px",

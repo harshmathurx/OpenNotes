@@ -8,17 +8,20 @@ interface EditorProps {
   content: string
   onChange: (content: string) => void
   onSave: () => void
+  onNavigate?: (path: string) => void
 }
 
-export function Editor({ content, onChange, onSave }: EditorProps) {
+export function Editor({ content, onChange, onSave, onNavigate }: EditorProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   const onSaveRef = useRef(onSave)
+  const onNavigateRef = useRef(onNavigate)
 
   // Keep refs current so the editor's captured callbacks always call latest
   onChangeRef.current = onChange
   onSaveRef.current = onSave
+  onNavigateRef.current = onNavigate
 
   useEffect(() => {
     if (!parentRef.current || viewRef.current) return
@@ -27,6 +30,7 @@ export function Editor({ content, onChange, onSave }: EditorProps) {
       initialContent: content,
       onChange: (c) => onChangeRef.current(c),
       onSave: () => onSaveRef.current(),
+      onNavigate: (p) => onNavigateRef.current?.(p),
     })
     viewRef.current = view
     return () => {
