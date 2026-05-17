@@ -15,6 +15,12 @@ import {
 import { markdown } from "@codemirror/lang-markdown"
 import { basicSetup } from "codemirror"
 import { indentWithTab } from "@codemirror/commands"
+import {
+  autocompletion,
+  CompletionContext,
+  CompletionResult,
+  Completion,
+} from "@codemirror/autocomplete"
 
 // ── Wikilink Widget ──
 class WikilinkWidget extends WidgetType {
@@ -46,154 +52,126 @@ class WikilinkWidget extends WidgetType {
   }
 }
 
-// ── Slash Menu Widget ──
-class SlashMenuWidget extends WidgetType {
-  constructor(
-    private options: Array<{ label: string; shortcut: string; insert: string }>
-  ) {
-    super()
-  }
+// ── Wikilink Plugin ──
+function createWikilinkPlugin(onNavigate?: (path: string) => void) {
+  return ViewPlugin.fromClass(
+    class WikilinkPluginValue {
+      decorations = Decoration.none
 
-  toDOM() {
-    const div = document.createElement("div")
-    div.className = "cm-slash-menu"
-    div.style.cssText = `
-      position: absolute;
-      background: var(--popover, white);
-      border: 1px solid var(--border, #e7e5e4);
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 4px;
-      min-width: 180px;
-      z-index: 100;
-      font-family: var(--font-sans, system-ui);
-      font-size: 13px;
-    `
+      constructor(view: EditorView) {
+        this.compute(view)
+      }
+      update(update: ViewUpdate) {
+        this.compute(update.view)
+      }
 
-    this.options.forEach((opt) => {
-      const item = document.createElement("div")
-      item.className = "cm-slash-item"
-      item.style.cssText = `
-        padding: 6px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--foreground, #1c1917);
-      `
-      item.innerHTML = `<span>${opt.label}</span><kbd style="font-size: 10px; background: var(--muted, #f5f5f4); padding: 2px 4px; border-radius: 3px; color: var(--muted-foreground, #78716c);">${opt.shortcut}</kbd>`
-      item.addEventListener("mouseenter", () => {
-        item.style.background = "var(--accent, #f5f5f4)"
-      })
-      item.addEventListener("mouseleave", () => {
-        item.style.background = "transparent"
-      })
-      div.appendChild(item)
-    })
-
-    return div
-  }
+      private compute(view: EditorView) {
+        const builder = new RangeSetBuilder<Decoration>()
+        const text = view.state.doc.toString()
+        const regex = /\[\[([^\]]+)\]\]/g
+        let match
+        while ((match = regex.exec(text)) !== null) {
+          const from = match.index
+          const to = from + match[0].length
+          builder.add(
+            from,
+            to,
+            Decoration.replace({
+              widget: new WikilinkWidget(match[1], onNavigate ?? (() => {})),
+              inclusive: true,
+            })
+          )
+        }
+        this.decorations = builder.finish()
+      }
+    },
+    { decorations: (v) => v.decorations }
+  )
 }
 
-const slashOptions = [
-  { label: "Heading 1", shortcut: "h1", insert: "# " },
-  { label: "Heading 2", shortcut: "h2", insert: "## " },
-  { label: "Heading 3", shortcut: "h3", insert: "### " },
-  { label: "Bullet list", shortcut: "bullet", insert: "- " },
-  { label: "Numbered list", shortcut: "num", insert: "1. " },
-  { label: "Quote", shortcut: "quote", insert: "> " },
-  { label: "Code block", shortcut: "code", insert: "```\n\n```" },
-  { label: "Divider", shortcut: "hr", insert: "---\n" },
+// ── Slash Command Completions ──
+const slashCompletions: Completion[] = [
+  { label: "/h1", displayLabel: "Heading 1", info: "Insert H1", apply: "# " },
+  { label: "/h2", displayLabel: "Heading 2", info: "Insert H2", apply: "## " },
+  { label: "/h3", displayLabel: "Heading 3", info: "Insert H3", apply: "### " },
+  {
+    label: "/bullet",
+    displayLabel: "Bullet list",
+    info: "Insert bullet",
+    apply: "- ",
+  },
+  {
+    label: "/num",
+    displayLabel: "Numbered list",
+    info: "Insert numbered list",
+    apply: "1. ",
+  },
+  {
+    label: "/quote",
+    displayLabel: "Quote",
+    info: "Insert blockquote",
+    apply: "> ",
+  },
+  {
+    label: "/code",
+    displayLabel: "Code block",
+    info: "Insert code block",
+    apply: "```\n\n```",
+  },
+  {
+    label: "/hr",
+    displayLabel: "Divider",
+    info: "Insert horizontal rule",
+    apply: "---\n",
+  },
 ]
 
-// ── Slash Menu State ──
-const showSlashMenu = StateEffect.define<boolean>()
-const slashMenuField = StateField.define<boolean>({
-  create: () => false,
-  update: (value, tr) => {
-    for (const e of tr.effects) if (e.is(showSlashMenu)) return e.value
-    if (tr.docChanged) {
-      const pos = tr.state.selection.main.head
-      const line = tr.state.doc.lineAt(pos)
-      const before = line.text.slice(0, pos - line.from)
-      if (!before.match(/^\/?$/)) return false
-    }
-    return value
-  },
-})
+function slashCommandSource(
+  context: CompletionContext
+): CompletionResult | null {
+  const line = context.state.doc.lineAt(context.pos)
+  const before = line.text.slice(0, context.pos - line.from)
 
-class SlashMenuPluginValue {
-  decorations = Decoration.none
+  // Only trigger at start of line or after whitespace at start
+  if (!before.match(/^\/?$/)) return null
 
-  constructor(view: EditorView) {
-    this.compute(view)
-  }
-  update(update: ViewUpdate) {
-    this.compute(update.view)
-  }
+  const isEmpty = before === ""
+  const isSlash = before === "/"
 
-  private compute(view: EditorView) {
-    const show = view.state.field(slashMenuField, false)
-    if (!show) {
-      this.decorations = Decoration.none
-      return
-    }
+  if (!isEmpty && !isSlash) return null
 
-    const pos = view.state.selection.main.head
-    const line = view.state.doc.lineAt(pos)
-    const before = line.text.slice(0, pos - line.from)
-
-    if (before === "/") {
-      const builder = new RangeSetBuilder<Decoration>()
-      const widget = new SlashMenuWidget(slashOptions)
-      builder.add(pos, pos, Decoration.widget({ widget, side: 1 }))
-      this.decorations = builder.finish()
-    } else {
-      this.decorations = Decoration.none
-    }
+  return {
+    from: line.from,
+    options: slashCompletions,
+    validFor: /^\/?$/, // Keep open while typing /h, /b, etc.
   }
 }
 
-const slashMenuPlugin = ViewPlugin.fromClass(SlashMenuPluginValue, {
-  decorations: (v) => v.decorations,
-})
+// ── Wikilink Completions ──
+function wikilinkSource(
+  filePaths: string[]
+): (context: CompletionContext) => CompletionResult | null {
+  return (context: CompletionContext): CompletionResult | null => {
+    const before = context.matchBefore(/\[\[[^\]]*/)
+    if (!before) return null
 
-// ── Wikilink Plugin ──
-class WikilinkPluginValue {
-  decorations = Decoration.none
+    const query = before.text.slice(2).toLowerCase()
+    const options = filePaths
+      .filter((p) => p.toLowerCase().includes(query))
+      .map((p) => ({
+        label: p,
+        apply: `[[${p}]]`,
+      }))
 
-  constructor(view: EditorView) {
-    this.compute(view)
-  }
-  update(update: ViewUpdate) {
-    this.compute(update.view)
-  }
+    if (options.length === 0 && query.length > 0) return null
 
-  private compute(view: EditorView) {
-    const builder = new RangeSetBuilder<Decoration>()
-    const text = view.state.doc.toString()
-    const regex = /\[\[([^\]]+)\]\]/g
-    let match
-    while ((match = regex.exec(text)) !== null) {
-      const from = match.index
-      const to = from + match[0].length
-      builder.add(
-        from,
-        to,
-        Decoration.replace({
-          widget: new WikilinkWidget(match[1], () => {}),
-          inclusive: true,
-        })
-      )
+    return {
+      from: before.from,
+      options,
+      validFor: /^\[\[[^\]]*$/,
     }
-    this.decorations = builder.finish()
   }
 }
-
-const wikilinkPlugin = ViewPlugin.fromClass(WikilinkPluginValue, {
-  decorations: (v) => v.decorations,
-})
 
 // ── Header Syntax Hider ──
 class HeaderMarkerWidget extends WidgetType {
@@ -297,21 +275,31 @@ const syntaxHider = ViewPlugin.fromClass(SyntaxHiderValue, {
   decorations: (v) => v.decorations,
 })
 
+// ── File paths facet ──
+const filePathsFacet = StateField.define<string[]>({
+  create: () => [],
+  update: (value) => value,
+})
+
 interface CreateEditorOptions {
   parent: HTMLElement
   initialContent: string
   onChange: (content: string) => void
   onSave: () => void
   onNavigate?: (path: string) => void
+  filePaths?: string[]
 }
 
 export function createEditor(options: CreateEditorOptions): EditorView {
   const extensions = [
     basicSetup,
     markdown({ codeLanguages: [] }),
-    slashMenuField,
-    slashMenuPlugin,
-    wikilinkPlugin,
+    autocompletion({
+      override: [slashCommandSource, wikilinkSource(options.filePaths ?? [])],
+      defaultKeymap: true,
+      icons: false,
+    }),
+    createWikilinkPlugin(options.onNavigate),
     syntaxHider,
     keymap.of([
       indentWithTab,
@@ -423,6 +411,47 @@ export function createEditor(options: CreateEditorOptions): EditorView {
         borderRadius: "3px",
         padding: "0 4px",
         fontSize: "0.9em",
+      },
+      // Autocomplete panel
+      ".cm-tooltip": {
+        backgroundColor: "var(--popover, white)",
+        border: "1px solid var(--border, #e7e5e4)",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        fontFamily: "var(--font-sans, system-ui)",
+        fontSize: "13px",
+        overflow: "hidden",
+      },
+      ".cm-tooltip.cm-tooltip-autocomplete": {
+        padding: "4px",
+      },
+      ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+        padding: "0",
+        margin: "0",
+        listStyle: "none",
+        maxHeight: "240px",
+        overflowY: "auto",
+      },
+      ".cm-tooltip.cm-tooltip-autocomplete > ul > li": {
+        padding: "6px 10px",
+        borderRadius: "4px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        color: "var(--foreground, #1c1917)",
+      },
+      ".cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]": {
+        backgroundColor: "var(--accent, #f5f5f4)",
+        color: "var(--accent-foreground, #1c1917)",
+      },
+      ".cm-completionLabel": {
+        fontWeight: "500",
+      },
+      ".cm-completionDetail": {
+        color: "var(--muted-foreground, #78716c)",
+        fontSize: "11px",
+        marginLeft: "auto",
       },
     }),
   ]

@@ -6,12 +6,19 @@ import type { EditorView } from "@codemirror/view"
 
 interface EditorProps {
   content: string
+  filePaths?: string[]
   onChange: (content: string) => void
   onSave: () => void
   onNavigate?: (path: string) => void
 }
 
-export function Editor({ content, onChange, onSave, onNavigate }: EditorProps) {
+export function Editor({
+  content,
+  filePaths,
+  onChange,
+  onSave,
+  onNavigate,
+}: EditorProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -28,6 +35,7 @@ export function Editor({ content, onChange, onSave, onNavigate }: EditorProps) {
     const view = createEditor({
       parent: parentRef.current,
       initialContent: content,
+      filePaths,
       onChange: (c) => onChangeRef.current(c),
       onSave: () => onSaveRef.current(),
       onNavigate: (p) => onNavigateRef.current?.(p),

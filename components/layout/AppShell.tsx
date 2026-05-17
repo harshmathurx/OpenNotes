@@ -159,6 +159,7 @@ export function AppShell() {
         <div className="flex-1 overflow-hidden">
           <Editor
             content={activeContent}
+            filePaths={files.map((f) => f.path)}
             onChange={(content) => {
               if (activeFile) saveFile(activeFile, content)
             }}
