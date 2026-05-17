@@ -521,7 +521,7 @@ pnpm add dexie-react-hooks
 4. Reload the page
 5. File list should persist, content should persist
 
-**Phase 2 done.** Commit: `feat: Dexie schema + LocalProvider + basic vault UI`
+**Phase 2 done.** [x] Completed. Commit: `feat: Dexie schema + LocalProvider + basic vault UI`
 
 ---
 
