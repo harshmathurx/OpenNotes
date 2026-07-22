@@ -50,6 +50,30 @@ export class LocalProvider implements StorageProvider {
     return { path, content, lastModified: now }
   }
 
+  async renameFile(oldPath: string, newPath: string): Promise<FileEntry | null> {
+    const file = await db.files.get(oldPath)
+    if (!file) return null
+
+    await db.transaction("rw", db.files, async () => {
+      await db.files.delete(oldPath)
+      await db.files.put({
+        ...file,
+        path: newPath,
+        lastModified: new Date(),
+        synced: true,
+        syncPending: false,
+      })
+    })
+
+    const renamed = await db.files.get(newPath)
+    if (!renamed) return null
+    return {
+      path: renamed.path,
+      content: renamed.content,
+      lastModified: renamed.lastModified,
+    }
+  }
+
   async deleteFile(path: string): Promise<void> {
     await db.files.delete(path)
   }

@@ -12,7 +12,12 @@ export function useSync() {
   const { activeProvider } = useStorage()
 
   useEffect(() => {
-    if (!activeProvider) return
+    if (!activeProvider || activeProvider.id === "local") {
+      setStatus("idle")
+      setUnsyncedCount(0)
+      engineRef.current = null
+      return
+    }
 
     const engine = new SyncEngine({
       provider: activeProvider,
@@ -46,8 +51,8 @@ export function useSync() {
   }, [])
 
   return {
-    status: activeProvider ? status : "idle",
-    unsyncedCount: activeProvider ? unsyncedCount : 0,
+    status: activeProvider && activeProvider.id !== "local" ? status : "idle",
+    unsyncedCount: activeProvider && activeProvider.id !== "local" ? unsyncedCount : 0,
     flush,
   }
 }
