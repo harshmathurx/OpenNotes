@@ -1,4 +1,4 @@
-import type { FileEntry, StorageProvider } from "../storage/types"
+import type { StorageProvider } from "../storage/types"
 import type { LocalFile } from "../db/schema"
 
 export interface ConflictInfo {

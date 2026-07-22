@@ -12,10 +12,7 @@ export function useSync() {
   const { activeProvider } = useStorage()
 
   useEffect(() => {
-    if (!activeProvider) {
-      setStatus("idle")
-      return
-    }
+    if (!activeProvider) return
 
     const engine = new SyncEngine({
       provider: activeProvider,
@@ -38,12 +35,19 @@ export function useSync() {
     engine.start()
     engineRef.current = engine
 
-    return () => engine.stop()
+    return () => {
+      engine.stop()
+      engineRef.current = null
+    }
   }, [activeProvider])
 
   const flush = useCallback(async () => {
     if (engineRef.current) await engineRef.current.flush()
   }, [])
 
-  return { status, unsyncedCount, flush }
+  return {
+    status: activeProvider ? status : "idle",
+    unsyncedCount: activeProvider ? unsyncedCount : 0,
+    flush,
+  }
 }

@@ -12,7 +12,6 @@ import {
   StateField,
   StateEffect,
 } from "@codemirror/state"
-import { syntaxTree } from "@codemirror/language"
 import { markdown } from "@codemirror/lang-markdown"
 import { basicSetup } from "codemirror"
 import { indentWithTab } from "@codemirror/commands"
@@ -232,8 +231,6 @@ class SyntaxHiderValue {
     // Track state
     let inFencedCode = false
     let fencedCodeDepth = 0
-    let inBlockquote = false
-
     const cursorLine = view.state.doc.lineAt(view.state.selection.main.head)
 
     for (let i = 0; i < lines.length; i++) {
@@ -494,7 +491,7 @@ export function createEditor(options: CreateEditorOptions): EditorView {
       },
     ]),
     EditorView.domEventHandlers({
-      click: (event, view) => {
+      click: (event) => {
         const target = event.target as HTMLElement
         if (target.classList.contains("cm-wikilink")) {
           const path = target.textContent || ""

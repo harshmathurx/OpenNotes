@@ -7,6 +7,7 @@ import {
   Zap,
   Lock,
 } from "lucide-react"
+import Link from "next/link"
 
 export default function Landing() {
   return (
@@ -23,17 +24,17 @@ export default function Landing() {
             <br className="sm:hidden" /> Your storage.
           </h1>
           <p className="mx-auto mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            A markdown editor that stores your files in GitHub, Dropbox, or just
-            your browser. No subscription. No lock-in. No server.
+            A local-first markdown editor for calm, portable notes. Your vault
+            starts in this browser. GitHub sync is under active development.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <a
+            <Link
               href="/"
               className="inline-flex items-center justify-center rounded-lg bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
               Try it now
               <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
+            </Link>
             <a
               href="https://github.com/opennotes/opennotes"
               target="_blank"
@@ -61,11 +62,11 @@ export default function Landing() {
                 <GitBranch className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="mb-2 text-base font-semibold text-foreground">
-                GitHub
+                GitHub sync next
               </h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Your notes in a private repo. Free version history. Every change
-                is a commit.
+                Remote sync to a private repo is the next major milestone. Do
+                not rely on it as a working backup in this beta.
               </p>
             </div>
 
@@ -74,11 +75,11 @@ export default function Landing() {
                 <Cloud className="h-5 w-5 text-foreground" />
               </div>
               <h3 className="mb-2 text-base font-semibold text-foreground">
-                Dropbox
+                Dropbox later
               </h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Syncs everywhere Dropbox does. No new accounts needed. Works
-                offline.
+                Dropbox support is planned after the GitHub provider and sync
+                conflict flow are proven end to end.
               </p>
             </div>
 
@@ -90,8 +91,8 @@ export default function Landing() {
                 Just this browser
               </h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                No account needed. Files saved in your browser with IndexedDB.
-                Connect storage later.
+                No account needed. Notes are saved locally in this browser with
+                IndexedDB while remote sync is still in progress.
               </p>
             </div>
           </div>
@@ -111,8 +112,8 @@ export default function Landing() {
                   You own your data
                 </h4>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Files live in your storage, not ours. We never see what you
-                  write.
+                  In the current beta, notes live in your browser storage. Keep
+                  your own backup for anything important.
                 </p>
               </div>
             </div>
@@ -126,8 +127,8 @@ export default function Landing() {
                   Plain markdown
                 </h4>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Every file is a .md file. No proprietary format. Export
-                  anytime.
+                  The editor works with markdown content and is designed around
+                  portable notes rather than a proprietary document model.
                 </p>
               </div>
             </div>
@@ -141,7 +142,8 @@ export default function Landing() {
                   Works offline
                 </h4>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Edit without internet. Changes sync when you are back online.
+                  The local browser vault can be edited without an OpenNotes
+                  account or server. Remote sync is not production-ready yet.
                 </p>
               </div>
             </div>
@@ -156,9 +158,9 @@ export default function Landing() {
             OpenNotes — open source, Apache 2.0
           </p>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <a href="/" className="transition-colors hover:text-foreground">
+            <Link href="/" className="transition-colors hover:text-foreground">
               App
-            </a>
+            </Link>
             <a
               href="https://github.com/opennotes/opennotes"
               className="transition-colors hover:text-foreground"
