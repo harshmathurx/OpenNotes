@@ -93,8 +93,8 @@ export function SettingsModal({
             {!remoteEnabled && (
               <p className="mt-3 flex gap-2 text-xs text-muted-foreground">
                 <CloudOff className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                GitHub sync is hidden in this build. Set
-                NEXT_PUBLIC_ENABLE_REMOTE_STORAGE=true to enable it.
+                GitHub sync is hidden in this build. Remove
+                NEXT_PUBLIC_ENABLE_REMOTE_STORAGE=false to enable it.
               </p>
             )}
             {remoteError && (

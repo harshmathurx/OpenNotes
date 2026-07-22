@@ -159,9 +159,9 @@ export function AppShell() {
             <RepoPicker
               open={repoOpen}
               onClose={() => setRepoOpen(false)}
-              onSelect={(owner, repo, token) => {
-                void connectGitHub(owner, repo, token)
-                setRepoOpen(false)
+              onSelect={async (owner, repo, token) => {
+                const connected = await connectGitHub(owner, repo, token)
+                if (connected) setRepoOpen(false)
               }}
             />
           </>
@@ -300,9 +300,9 @@ export function AppShell() {
           <RepoPicker
             open={repoOpen}
             onClose={() => setRepoOpen(false)}
-            onSelect={(owner, repo, token) => {
-              void connectGitHub(owner, repo, token)
-              setRepoOpen(false)
+            onSelect={async (owner, repo, token) => {
+              const connected = await connectGitHub(owner, repo, token)
+              if (connected) setRepoOpen(false)
             }}
           />
           {remoteError && (

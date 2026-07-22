@@ -76,22 +76,33 @@ export function useStorage() {
 
     if (provider.id !== "local" && !REMOTE_STORAGE_ENABLED) {
       setRemoteError("Remote storage is disabled in this build.")
-      return
+      return false
     }
 
-    await provider.connect()
-    setActiveProvider(provider)
+    try {
+      await provider.connect()
+      setActiveProvider(provider)
+      return true
+    } catch (error) {
+      setRemoteError(
+        error instanceof Error
+          ? error.message
+          : "OpenNotes could not connect to remote storage."
+      )
+      return false
+    }
   }, [])
 
   const connectGitHub = useCallback(
     async (owner: string, repo: string, token: string, branch = "main") => {
       if (!REMOTE_STORAGE_ENABLED) {
         setRemoteError("Remote storage is disabled in this build.")
-        return
+        return false
       }
 
       const provider = new GitHubProvider(token, owner, repo, branch)
-      await connectProvider(provider)
+      const connected = await connectProvider(provider)
+      if (!connected) return false
       const encrypted = await encryptTokens(token, getOrCreateTokenPassphrase())
       await db.tokens.put({ id: "github", ...encrypted })
       await db.providerConfig.put({
@@ -99,6 +110,7 @@ export function useStorage() {
         connected: true,
         config: { owner, repo, branch },
       })
+      return true
     },
     [connectProvider]
   )

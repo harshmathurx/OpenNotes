@@ -30,28 +30,31 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
 
         <div className="flex flex-col gap-3">
           <p className="text-xs text-muted-foreground">
-            GitHub sync is in beta. OpenNotes uses a personal access token stored
-            encrypted in this browser, then writes Markdown files to your repo.
-            OAuth is deferred until the app has a server-backed deploy.
+            GitHub sync is in beta. Use a fine-grained access token scoped to
+            one existing repo with <code>Contents: Read and write</code>.
+            OpenNotes stores it encrypted in this browser only.
           </p>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Personal access token</label>
+            <label className="text-sm font-medium">
+              Fine-grained access token
+            </label>
             <Input
               type="password"
-              placeholder="ghp_..."
+              placeholder="github_pat_..."
               value={token}
               onChange={(e) => setToken(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Create a classic token with <code>repo</code> scope.{" "}
+              Repository access: only this repo. Permissions: Contents read and
+              write. OAuth sign-in needs a token broker and is planned after v2.{" "}
               <a
-                href="https://github.com/settings/tokens/new?scopes=repo&description=OpenNotes"
+                href="https://github.com/settings/personal-access-tokens/new"
                 target="_blank"
                 rel="noreferrer"
                 className="underline"
               >
-                Create one
+                Create fine-grained token
               </a>
             </p>
           </div>

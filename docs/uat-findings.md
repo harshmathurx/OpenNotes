@@ -31,9 +31,16 @@ Tested the first-run flow and first-note workspace on `v2` using the browser aga
 - **Expected:** The sidebar should occupy full height with a stable width and clear file rail.
 - **Fix:** Made the sidebar full-height, fixed-width, and shrink-safe; the desktop wrapper now owns full height.
 
-### 4. GitHub connection copy was contradictory
+### 4. GitHub connection copy and auth model were not clean enough
 
 - **Severity:** Medium
-- **Actual:** The GitHub dialog said remote storage was disabled while also asking for a token.
-- **Expected:** Copy should say this is the GitHub beta path and explain the PAT requirement.
-- **Fix:** Rewrote GitHub dialog copy around the current client-only beta path.
+- **Actual:** The GitHub dialog said remote storage was disabled while also asking for a token, and the provider attempted repo auto-creation that does not fit fine-grained tokens.
+- **Expected:** v2 should use a clear no-backend fine-grained token flow: existing repo, token scoped only to that repo, Contents read/write, clear errors if access fails.
+- **Fix:** Rewrote GitHub dialog copy around fine-grained tokens, documented exact token setup in README, removed silent repo auto-create, and added GitHub provider connection tests for permission/error handling.
+
+### 5. Desktop app is tempting, but not v2
+
+- **Severity:** Product scope
+- **Actual:** macOS/Windows packaging could make local files and OS keychain storage easier, but it would expand scope before the web/local beta is clean.
+- **Expected:** Finish v2 as a clean web/local-first beta first; evaluate Tauri desktop as v2.1.
+- **Fix:** Kept desktop out of v2. Documented OAuth/token-broker as the better production auth path after v2.
