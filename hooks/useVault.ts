@@ -3,12 +3,22 @@
 import { useState, useCallback, useEffect } from "react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { db } from "@/core/db/schema"
+import {
+  deleteVaultFile,
+  renameVaultFile,
+  saveVaultFile,
+} from "@/core/vault/mutations"
 
 const STORAGE_KEY = "opennotes-active-file"
 
-export function useVault() {
+interface UseVaultOptions {
+  remoteActive?: boolean
+}
+
+export function useVault(options: UseVaultOptions = {}) {
   const files = useLiveQuery(() => db.files.orderBy("path").toArray(), []) ?? []
   const [activeFile, setActiveFileState] = useState<string | null>(null)
+  const remoteActive = options.remoteActive ?? false
 
   // Persist active file
   useEffect(() => {
@@ -63,34 +73,26 @@ export function useVault() {
     [files]
   )
 
-  const saveFile = useCallback(async (path: string, content: string) => {
-    await db.files.put({
-      path,
-      content,
-      lastModified: new Date(),
-      synced: false,
-      syncPending: true,
-    })
-  }, [])
+  const saveFile = useCallback(
+    async (path: string, content: string) => {
+      await saveVaultFile(path, content, remoteActive)
+    },
+    [remoteActive]
+  )
 
   const renameFile = useCallback(
     async (oldPath: string, newPath: string) => {
-      const target = newPath.endsWith(".md") ? newPath : `${newPath}.md`
-      if (target === oldPath) return
-      const file = await db.files.get(oldPath)
-      if (!file) return
-      await db.files.delete(oldPath)
-      await db.files.put({ ...file, path: target })
-      if (activeFile === oldPath) {
+      const target = await renameVaultFile(oldPath, newPath, remoteActive)
+      if (target && activeFile === oldPath) {
         setActiveFileState(target)
       }
     },
-    [activeFile]
+    [activeFile, remoteActive]
   )
 
   const deleteFile = useCallback(
     async (path: string) => {
-      await db.files.delete(path)
+      await deleteVaultFile(path, remoteActive)
       if (activeFile === path) {
         const remaining = files.filter((f) => f.path !== path)
         const next = remaining[0]?.path ?? null
@@ -98,7 +100,7 @@ export function useVault() {
         if (next) localStorage.setItem(STORAGE_KEY, next)
       }
     },
-    [activeFile, files]
+    [activeFile, files, remoteActive]
   )
 
   return {

@@ -7,8 +7,11 @@ import { SyncStatusIndicator } from "./SyncStatus"
 import { TiptapEditor } from "../editor/TiptapEditor"
 import { CommandPalette } from "../palette/CommandPalette"
 import { ConflictModal } from "../modals/ConflictModal"
+import { ProviderPicker } from "../modals/ProviderPicker"
+import { RepoPicker } from "../modals/RepoPicker"
 import { useVault } from "@/hooks/useVault"
 import { useSync } from "@/hooks/useSync"
+import { useStorage } from "@/hooks/useStorage"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -20,6 +23,14 @@ import { Plus, FileText } from "lucide-react"
 
 export function AppShell() {
   const {
+    activeProvider,
+    connectGitHub,
+    connectLocal,
+    remoteEnabled,
+    remoteActive,
+    remoteError,
+  } = useStorage()
+  const {
     files,
     activeFile,
     setActiveFile,
@@ -27,12 +38,14 @@ export function AppShell() {
     saveFile,
     renameFile,
     deleteFile,
-  } = useVault()
-  const { status, unsyncedCount, flush } = useSync()
+  } = useVault({ remoteActive })
+  const { status, unsyncedCount, flush } = useSync(activeProvider)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [zenMode, setZenMode] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
+  const [providerOpen, setProviderOpen] = useState(false)
+  const [repoOpen, setRepoOpen] = useState(false)
   const [conflict, setConflict] = useState<{
     path: string
     local: string
@@ -115,7 +128,40 @@ export function AppShell() {
             </kbd>{" "}
             to create a file
           </p>
+          {remoteEnabled && (
+            <Button
+              variant="outline"
+              onClick={() => setProviderOpen(true)}
+              className="gap-2"
+            >
+              Connect storage...
+            </Button>
+          )}
         </div>
+        {remoteEnabled && (
+          <>
+            <ProviderPicker
+              open={providerOpen}
+              onClose={() => setProviderOpen(false)}
+              onSelectLocal={() => {
+                void connectLocal()
+                setProviderOpen(false)
+              }}
+              onSelectGitHub={() => {
+                setProviderOpen(false)
+                setRepoOpen(true)
+              }}
+            />
+            <RepoPicker
+              open={repoOpen}
+              onClose={() => setRepoOpen(false)}
+              onSelect={(owner, repo, token) => {
+                void connectGitHub(owner, repo, token)
+                setRepoOpen(false)
+              }}
+            />
+          </>
+        )}
       </div>
     )
   }
@@ -208,7 +254,39 @@ export function AppShell() {
           onSelectFile={setActiveFile}
           onCreateFile={createFile}
           onSync={handleSave}
+          remoteEnabled={remoteEnabled}
+          onOpenStorage={() => setProviderOpen(true)}
         />
+      )}
+
+      {remoteEnabled && (
+        <>
+          <ProviderPicker
+            open={providerOpen}
+            onClose={() => setProviderOpen(false)}
+            onSelectLocal={() => {
+              void connectLocal()
+              setProviderOpen(false)
+            }}
+            onSelectGitHub={() => {
+              setProviderOpen(false)
+              setRepoOpen(true)
+            }}
+          />
+          <RepoPicker
+            open={repoOpen}
+            onClose={() => setRepoOpen(false)}
+            onSelect={(owner, repo, token) => {
+              void connectGitHub(owner, repo, token)
+              setRepoOpen(false)
+            }}
+          />
+          {remoteError && (
+            <div className="fixed right-3 bottom-3 rounded-md border bg-background px-3 py-2 text-xs text-destructive shadow">
+              {remoteError}
+            </div>
+          )}
+        </>
       )}
 
       {conflict && (

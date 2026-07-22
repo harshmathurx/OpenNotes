@@ -3,17 +3,21 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { SyncEngine } from "@/core/sync/engine"
 import type { SyncStatus } from "@/core/sync/engine"
-import { useStorage } from "./useStorage"
+import { db } from "@/core/db/schema"
+import type { StorageProvider } from "@/core/storage/types"
+import { isRemoteProviderActive } from "./useStorage"
 
-export function useSync() {
-  const [status, setStatus] = useState<SyncStatus>("idle")
+export function useSync(activeProvider: StorageProvider) {
+  const [status, setStatus] = useState<SyncStatus>("saved-local")
   const [unsyncedCount, setUnsyncedCount] = useState(0)
   const engineRef = useRef<SyncEngine | null>(null)
-  const { activeProvider } = useStorage()
 
   useEffect(() => {
-    if (!activeProvider) {
-      setStatus("idle")
+    if (!isRemoteProviderActive(activeProvider)) {
+      queueMicrotask(() => {
+        setStatus("saved-local")
+        setUnsyncedCount(0)
+      })
       return
     }
 
@@ -39,6 +43,27 @@ export function useSync() {
     engineRef.current = engine
 
     return () => engine.stop()
+  }, [activeProvider])
+
+  useEffect(() => {
+    if (!isRemoteProviderActive(activeProvider)) return
+
+    let cancelled = false
+    const refreshPending = async () => {
+      const count = await db.syncQueue
+        .where("status")
+        .anyOf(["pending", "failed"])
+        .count()
+      if (!cancelled && count > 0) {
+        setStatus("pending")
+        setUnsyncedCount(count)
+      }
+    }
+
+    void refreshPending()
+    return () => {
+      cancelled = true
+    }
   }, [activeProvider])
 
   const flush = useCallback(async () => {

@@ -19,9 +19,19 @@ export function SyncStatusIndicator({
     SyncStatus,
     { icon: typeof Cloud; label: string; className: string }
   > = {
-    idle: {
+    "saved-local": {
+      icon: CloudOff,
+      label: "Saved locally",
+      className: "text-muted-foreground",
+    },
+    pending: {
+      icon: AlertCircle,
+      label: count > 0 ? `${count} pending sync` : "Pending sync",
+      className: "text-amber-500",
+    },
+    "remote-synced": {
       icon: Cloud,
-      label: "Synced",
+      label: "Remote synced",
       className: "text-emerald-600 dark:text-emerald-400",
     },
     syncing: {
@@ -29,17 +39,16 @@ export function SyncStatusIndicator({
       label: "Syncing...",
       className: "text-blue-500 animate-spin",
     },
-    unsynced: {
-      icon: AlertCircle,
-      label: `${count} unsaved`,
-      className: "text-amber-500",
-    },
     offline: {
       icon: CloudOff,
       label: "Offline",
       className: "text-muted-foreground",
     },
-    error: { icon: AlertCircle, label: "Error", className: "text-destructive" },
+    failed: {
+      icon: AlertCircle,
+      label: count > 0 ? `${count} sync failed` : "Sync failed",
+      className: "text-destructive",
+    },
   }
 
   const { icon: Icon, label, className } = config[status]
@@ -54,9 +63,9 @@ export function SyncStatusIndicator({
       <Icon className={`h-3.5 w-3.5 ${className}`} />
       <span
         className={
-          status === "idle"
+          status === "remote-synced"
             ? "text-emerald-600 dark:text-emerald-400"
-            : status === "error"
+            : status === "failed"
               ? "text-destructive"
               : ""
         }
