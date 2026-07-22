@@ -8,12 +8,14 @@ interface SyncStatusProps {
   status: SyncStatus
   count: number
   onSync: () => void
+  localOnly?: boolean
 }
 
 export function SyncStatusIndicator({
   status,
   count,
   onSync,
+  localOnly = false,
 }: SyncStatusProps) {
   const config: Record<
     SyncStatus,

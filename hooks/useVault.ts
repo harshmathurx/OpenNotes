@@ -68,8 +68,8 @@ export function useVault() {
       path,
       content,
       lastModified: new Date(),
-      synced: false,
-      syncPending: true,
+      synced: true,
+      syncPending: false,
     })
   }, [])
 
