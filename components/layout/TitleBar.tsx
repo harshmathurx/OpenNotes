@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { PanelLeft, Maximize2, Sun, Moon, Menu } from "lucide-react"
+import { PanelLeft, Maximize2, Sun, Moon, Menu, Settings } from "lucide-react"
 import { useTheme } from "next-themes"
 
 interface TitleBarProps {
@@ -10,6 +10,7 @@ interface TitleBarProps {
   onToggleSidebar: () => void
   onToggleZen: () => void
   onRename: (newPath: string) => void
+  onOpenSettings: () => void
   onToggleMobileSidebar?: () => void
   children?: React.ReactNode
 }
@@ -19,6 +20,7 @@ export function TitleBar({
   onToggleSidebar,
   onToggleZen,
   onRename,
+  onOpenSettings,
   onToggleMobileSidebar,
   children,
 }: TitleBarProps) {
@@ -101,6 +103,16 @@ export function TitleBar({
 
       <div className="flex shrink-0 items-center gap-1">
         {children}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onOpenSettings}
+          className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+          title="Settings"
+        >
+          <Settings className="h-4 w-4" />
+          <span className="hidden sm:inline">Settings</span>
+        </Button>
         <Button
           variant="ghost"
           size="sm"

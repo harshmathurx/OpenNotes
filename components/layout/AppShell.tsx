@@ -9,6 +9,7 @@ import { CommandPalette } from "../palette/CommandPalette"
 import { ConflictModal } from "../modals/ConflictModal"
 import { ProviderPicker } from "../modals/ProviderPicker"
 import { RepoPicker } from "../modals/RepoPicker"
+import { SettingsModal } from "../modals/SettingsModal"
 import { useVault } from "@/hooks/useVault"
 import { useSync } from "@/hooks/useSync"
 import { useStorage } from "@/hooks/useStorage"
@@ -19,13 +20,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { Plus, FileText } from "lucide-react"
+import { Plus, FileText, GitBranch } from "lucide-react"
 
 export function AppShell() {
   const {
     activeProvider,
     connectGitHub,
     connectLocal,
+    disconnectRemote,
     remoteEnabled,
     remoteActive,
     remoteError,
@@ -44,6 +46,7 @@ export function AppShell() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [zenMode, setZenMode] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [providerOpen, setProviderOpen] = useState(false)
   const [repoOpen, setRepoOpen] = useState(false)
   const [conflict, setConflict] = useState<{
@@ -131,10 +134,11 @@ export function AppShell() {
           {remoteEnabled && (
             <Button
               variant="outline"
-              onClick={() => setProviderOpen(true)}
+              onClick={() => setRepoOpen(true)}
               className="gap-2"
             >
-              Connect storage...
+              <GitBranch className="h-4 w-4" />
+              Sync to GitHub
             </Button>
           )}
         </div>
@@ -169,7 +173,7 @@ export function AppShell() {
   return (
     <div className="flex h-screen bg-background">
       {!zenMode && sidebarOpen && (
-        <div className="hidden md:block">
+        <div className="hidden h-full md:block">
           <Sidebar
             files={files}
             activeFile={activeFile}
@@ -208,6 +212,7 @@ export function AppShell() {
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             onToggleMobileSidebar={() => setMobileSheetOpen(true)}
             onToggleZen={() => setZenMode(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
             onRename={(newPath) => {
               if (activeFile) void renameFile(activeFile, newPath)
             }}
@@ -258,6 +263,25 @@ export function AppShell() {
           onOpenStorage={() => setProviderOpen(true)}
         />
       )}
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        providerName={activeProvider.name}
+        remoteEnabled={remoteEnabled}
+        remoteActive={remoteActive}
+        remoteError={remoteError}
+        unsyncedCount={unsyncedCount}
+        onOpenGitHub={() => {
+          setSettingsOpen(false)
+          setRepoOpen(true)
+        }}
+        onUseLocal={() => {
+          void disconnectRemote()
+          setSettingsOpen(false)
+        }}
+        onSyncNow={handleSave}
+      />
 
       {remoteEnabled && (
         <>

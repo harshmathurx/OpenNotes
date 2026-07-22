@@ -8,7 +8,7 @@ import type { StorageProvider } from "@/core/storage/types"
 import { encryptTokens, decryptTokens } from "@/core/crypto/tokens"
 
 export const REMOTE_STORAGE_ENABLED =
-  process.env.NEXT_PUBLIC_ENABLE_REMOTE_STORAGE === "true"
+  process.env.NEXT_PUBLIC_ENABLE_REMOTE_STORAGE !== "false"
 
 const LOCAL_PROVIDER = new LocalProvider()
 const TOKEN_PASSPHRASE_KEY = "opennotes-token-passphrase"

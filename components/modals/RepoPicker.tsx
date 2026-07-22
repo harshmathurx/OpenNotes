@@ -30,9 +30,9 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
 
         <div className="flex flex-col gap-3">
           <p className="text-xs text-muted-foreground">
-            Remote storage is disabled by default in this static build. When enabled,
-            GitHub currently connects with a personal access token stored encrypted
-            in the browser. OAuth is deferred until the app has a server-backed deploy.
+            GitHub sync is in beta. OpenNotes uses a personal access token stored
+            encrypted in this browser, then writes Markdown files to your repo.
+            OAuth is deferred until the app has a server-backed deploy.
           </p>
 
           <div className="space-y-1.5">
