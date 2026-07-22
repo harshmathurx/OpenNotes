@@ -23,13 +23,9 @@ export function TitleBar({
   children,
 }: TitleBarProps) {
   const [editing, setEditing] = useState(false)
-  const [editValue, setEditValue] = useState(path ?? "")
+  const [editValue, setEditValue] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
   const { resolvedTheme, setTheme } = useTheme()
-
-  useEffect(() => {
-    setEditValue(path ?? "")
-  }, [path])
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -92,7 +88,10 @@ export function TitleBar({
         ) : (
           <span
             className="cursor-pointer truncate text-sm text-muted-foreground transition-colors hover:text-foreground"
-            onClick={() => setEditing(true)}
+            onClick={() => {
+              setEditValue(path ?? "")
+              setEditing(true)
+            }}
             title="Click to rename"
           >
             {path || "Untitled"}

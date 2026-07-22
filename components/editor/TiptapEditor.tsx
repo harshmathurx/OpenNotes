@@ -54,9 +54,7 @@ export function TiptapEditor({
 
   useEffect(() => {
     lastEmittedMarkdownRef.current = content
-    setSlashMenuProps(null)
-    setSelectedSlashIndex(0)
-  }, [docKey])
+  }, [content, docKey])
 
   const editor = useEditor({
     immediatelyRender: false,

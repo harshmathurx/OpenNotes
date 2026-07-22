@@ -21,21 +21,25 @@ export function Editor({
 }: EditorProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const initialContentRef = useRef(content)
+  const initialFilePathsRef = useRef(filePaths)
   const onChangeRef = useRef(onChange)
   const onSaveRef = useRef(onSave)
   const onNavigateRef = useRef(onNavigate)
 
   // Keep refs current so the editor's captured callbacks always call latest
-  onChangeRef.current = onChange
-  onSaveRef.current = onSave
-  onNavigateRef.current = onNavigate
+  useEffect(() => {
+    onChangeRef.current = onChange
+    onSaveRef.current = onSave
+    onNavigateRef.current = onNavigate
+  }, [onChange, onSave, onNavigate])
 
   useEffect(() => {
     if (!parentRef.current || viewRef.current) return
     const view = createEditor({
       parent: parentRef.current,
-      initialContent: content,
-      filePaths,
+      initialContent: initialContentRef.current,
+      filePaths: initialFilePathsRef.current,
       onChange: (c) => onChangeRef.current(c),
       onSave: () => onSaveRef.current(),
       onNavigate: (p) => onNavigateRef.current?.(p),

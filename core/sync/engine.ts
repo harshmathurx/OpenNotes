@@ -1,12 +1,9 @@
 import type { StorageProvider } from "../storage/types"
-import type { LocalFile } from "../db/schema"
 import {
-  enqueueSyncAction,
   getPendingSyncActions,
   markSyncAttempt,
   clearCompletedSync,
 } from "./queue"
-import { detectConflicts } from "./conflicts"
 
 export type SyncStatus = "idle" | "syncing" | "unsynced" | "offline" | "error"
 

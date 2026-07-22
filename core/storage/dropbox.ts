@@ -123,8 +123,9 @@ export class DropboxProvider implements StorageProvider {
   async writeFile(
     path: string,
     content: string,
-    etag?: string
+    _etag?: string
   ): Promise<FileEntry> {
+    void _etag
     const fullPath = this._fullPath(path)
     const { result } = await this.dbx.filesUpload({
       path: fullPath,

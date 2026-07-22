@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import {
   CommandDialog,
   Command,
@@ -30,9 +30,15 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const [search, setSearch] = useState("")
 
-  useEffect(() => {
-    if (!open) setSearch("")
-  }, [open])
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setSearch("")
+        onClose()
+      }
+    },
+    [onClose]
+  )
 
   const handleCreate = useCallback(async () => {
     const name = search.trim() || "Untitled"
@@ -46,7 +52,7 @@ export function CommandPalette({
   }, [onSync, onClose])
 
   return (
-    <CommandDialog open={open} onOpenChange={onClose}>
+    <CommandDialog open={open} onOpenChange={handleOpenChange}>
       <Command>
         <CommandInput
           placeholder="Search files or type a command..."
