@@ -1,6 +1,20 @@
 import { Octokit } from "@octokit/rest"
 import type { StorageProvider, StorageCapabilities, FileEntry } from "./types"
 
+function encodeBase64(content: string) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(content).toString("base64")
+  }
+  return btoa(unescape(encodeURIComponent(content)))
+}
+
+function decodeBase64(content: string) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(content, "base64").toString("utf-8")
+  }
+  return decodeURIComponent(escape(atob(content)))
+}
+
 export class GitHubProvider implements StorageProvider {
   readonly id = "github"
   readonly name = "GitHub"
@@ -91,7 +105,7 @@ export class GitHubProvider implements StorageProvider {
       if (Array.isArray(data)) return null
       if (data.type !== "file") return null
 
-      const content = Buffer.from(data.content, "base64").toString("utf-8")
+      const content = decodeBase64(data.content)
       return {
         path: data.path,
         content,
@@ -117,7 +131,7 @@ export class GitHubProvider implements StorageProvider {
           repo: this.repo,
           path,
           message: `Update ${path}`,
-          content: Buffer.from(content).toString("base64"),
+          content: encodeBase64(content),
           branch: this.branch,
           sha: etag ?? existing?.etag,
         }

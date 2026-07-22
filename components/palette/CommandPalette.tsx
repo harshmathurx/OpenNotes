@@ -18,6 +18,8 @@ interface CommandPaletteProps {
   onSelectFile: (path: string) => void
   onCreateFile: (name: string) => Promise<string>
   onSync: () => void
+  remoteEnabled?: boolean
+  onOpenStorage?: () => void
 }
 
 export function CommandPalette({
@@ -27,6 +29,8 @@ export function CommandPalette({
   onSelectFile,
   onCreateFile,
   onSync,
+  remoteEnabled = false,
+  onOpenStorage,
 }: CommandPaletteProps) {
   const [search, setSearch] = useState("")
 
@@ -95,6 +99,17 @@ export function CommandPalette({
             <CommandItem value="Sync now" onSelect={handleSync}>
               Sync now
             </CommandItem>
+            {remoteEnabled && onOpenStorage && (
+              <CommandItem
+                value="Connect storage GitHub remote"
+                onSelect={() => {
+                  onOpenStorage()
+                  onClose()
+                }}
+              >
+                Connect storage...
+              </CommandItem>
+            )}
           </CommandGroup>
         </CommandList>
       </Command>

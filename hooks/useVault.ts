@@ -3,12 +3,22 @@
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { db } from "@/core/db/schema"
+import {
+  deleteVaultFile,
+  renameVaultFile,
+  saveVaultFile,
+} from "@/core/vault/mutations"
 
 const STORAGE_KEY = "opennotes-active-file"
 
-export function useVault() {
+interface UseVaultOptions {
+  remoteActive?: boolean
+}
+
+export function useVault(options: UseVaultOptions = {}) {
   const liveFiles = useLiveQuery(() => db.files.orderBy("path").toArray(), [])
   const files = useMemo(() => liveFiles ?? [], [liveFiles])
+  const remoteActive = options.remoteActive ?? false
   const [activeFileState, setActiveFileState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null
     return localStorage.getItem(STORAGE_KEY)
@@ -25,7 +35,6 @@ export function useVault() {
     return mostRecent?.path ?? null
   }, [activeFileState, files])
 
-  // Persist active file
   useEffect(() => {
     if (activeFile) {
       localStorage.setItem(STORAGE_KEY, activeFile)
@@ -41,7 +50,6 @@ export function useVault() {
   const createFile = useCallback(
     async (name?: string) => {
       const path = name?.endsWith(".md") ? name : `${name ?? "Untitled"}.md`
-      // Ensure unique name
       let uniquePath = path
       let counter = 1
       while (files.some((f) => f.path === uniquePath)) {
@@ -62,41 +70,33 @@ export function useVault() {
     [files]
   )
 
-  const saveFile = useCallback(async (path: string, content: string) => {
-    await db.files.put({
-      path,
-      content,
-      lastModified: new Date(),
-      synced: true,
-      syncPending: false,
-    })
-  }, [])
+  const saveFile = useCallback(
+    async (path: string, content: string) => {
+      await saveVaultFile(path, content, remoteActive)
+    },
+    [remoteActive]
+  )
 
   const renameFile = useCallback(
     async (oldPath: string, newPath: string) => {
-      const target = newPath.endsWith(".md") ? newPath : `${newPath}.md`
-      if (target === oldPath) return
-      const file = await db.files.get(oldPath)
-      if (!file) return
-      await db.files.delete(oldPath)
-      await db.files.put({ ...file, path: target, lastModified: new Date() })
-      if (activeFile === oldPath) {
+      const target = await renameVaultFile(oldPath, newPath, remoteActive)
+      if (target && activeFile === oldPath) {
         setActiveFileState(target)
       }
     },
-    [activeFile]
+    [activeFile, remoteActive]
   )
 
   const deleteFile = useCallback(
     async (path: string) => {
-      await db.files.delete(path)
+      await deleteVaultFile(path, remoteActive)
       if (activeFile === path) {
         const remaining = files.filter((f) => f.path !== path)
         const next = remaining[0]?.path ?? null
         setActiveFileState(next)
       }
     },
-    [activeFile, files]
+    [activeFile, files, remoteActive]
   )
 
   return {

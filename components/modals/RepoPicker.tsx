@@ -29,6 +29,20 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
         </DialogHeader>
 
         <div className="flex flex-col gap-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              window.open("/api/auth/github/start", "opennotes-github-oauth")
+            }}
+          >
+            Start GitHub OAuth
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            OAuth only works when server-side GitHub OAuth env vars are
+            configured. Otherwise use a personal access token below.
+          </p>
+
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Personal access token</label>
             <Input

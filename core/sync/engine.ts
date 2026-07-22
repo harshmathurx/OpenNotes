@@ -1,11 +1,19 @@
 import type { StorageProvider } from "../storage/types"
+import { db } from "../db/schema"
 import {
   getPendingSyncActions,
   markSyncAttempt,
   clearCompletedSync,
 } from "./queue"
+import { detectConflicts } from "./conflicts"
 
-export type SyncStatus = "idle" | "syncing" | "unsynced" | "offline" | "error"
+export type SyncStatus =
+  | "saved-local"
+  | "pending"
+  | "syncing"
+  | "remote-synced"
+  | "offline"
+  | "failed"
 
 export interface SyncEngineOptions {
   provider: StorageProvider
@@ -59,14 +67,48 @@ export class SyncEngine {
     this.onStatusChange("syncing")
 
     try {
-      const pending = await getPendingSyncActions()
+      const localFiles = await db.files.toArray()
+      const conflicts = await detectConflicts(this.provider, localFiles)
+      if (conflicts.length > 0) {
+        for (const conflict of conflicts) {
+          this.onConflict(
+            conflict.path,
+            conflict.localContent,
+            conflict.remoteContent
+          )
+          const matching = await db.syncQueue
+            .where("path")
+            .equals(conflict.path)
+            .and((record) => record.status !== "done")
+            .toArray()
+          await Promise.all(
+            matching.map((record) =>
+              record.id
+                ? markSyncAttempt(record.id, "failed", "Conflict detected").then(
+                    () =>
+                      markSyncAttempt(record.id!, "pending", "Conflict detected")
+                  )
+                : Promise.resolve()
+            )
+          )
+        }
+      }
+
+      const pending = (await getPendingSyncActions()).filter(
+        (action) => !conflicts.some((conflict) => conflict.path === action.path)
+      )
 
       for (const action of pending) {
         await markSyncAttempt(action.id!, "in-progress")
 
         try {
           if (action.action === "write" && action.content !== undefined) {
-            await this.provider.writeFile(action.path, action.content)
+            const written = await this.provider.writeFile(action.path, action.content)
+            await db.files.update(action.path, {
+              synced: true,
+              syncPending: false,
+              lastModified: written.lastModified,
+            })
           } else if (action.action === "delete") {
             await this.provider.deleteFile(action.path)
           }
@@ -74,6 +116,7 @@ export class SyncEngine {
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : "Unknown error"
           await markSyncAttempt(action.id!, "failed", errorMsg)
+          await markSyncAttempt(action.id!, "pending", errorMsg)
         }
       }
 
@@ -81,12 +124,15 @@ export class SyncEngine {
 
       const remaining = await getPendingSyncActions()
       if (remaining.length > 0) {
-        this.onStatusChange("unsynced", { unsyncedCount: remaining.length })
+        const failed = remaining.some((action) => action.error)
+        this.onStatusChange(failed ? "failed" : "pending", {
+          unsyncedCount: remaining.length,
+        })
       } else {
-        this.onStatusChange("idle")
+        this.onStatusChange("remote-synced", { unsyncedCount: 0 })
       }
     } catch {
-      this.onStatusChange("error")
+      this.onStatusChange("offline")
     } finally {
       this.isSyncing = false
     }

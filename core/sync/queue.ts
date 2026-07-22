@@ -1,4 +1,5 @@
 import { db } from "../db/schema"
+import type { SyncRecord } from "../db/schema"
 
 export async function enqueueSyncAction(
   path: string,
@@ -16,7 +17,10 @@ export async function enqueueSyncAction(
 }
 
 export async function getPendingSyncActions() {
-  return db.syncQueue.where("status").equals("pending").toArray()
+  return db.syncQueue
+    .where("status")
+    .anyOf(["pending", "failed"] satisfies SyncRecordStatus[])
+    .toArray()
 }
 
 export async function markSyncAttempt(
@@ -29,7 +33,7 @@ export async function markSyncAttempt(
   await db.syncQueue.update(id, {
     status,
     error,
-    attempts: (record.attempts || 0) + 1,
+    attempts: status === "in-progress" ? (record.attempts || 0) + 1 : record.attempts,
   })
 }
 
@@ -37,5 +41,4 @@ export async function clearCompletedSync() {
   await db.syncQueue.where("status").equals("done").delete()
 }
 
-import type { SyncRecord } from "../db/schema"
 type SyncRecordStatus = SyncRecord["status"]
