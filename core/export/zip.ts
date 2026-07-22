@@ -6,7 +6,10 @@ const DOS_EPOCH = new Date("1980-01-01T00:00:00Z")
 
 export async function exportVaultAsMarkdownZip(): Promise<Blob> {
   const files = await db.files.orderBy("path").toArray()
-  return new Blob([buildVaultMarkdownZip(files)], { type: "application/zip" })
+  const zip = buildVaultMarkdownZip(files)
+  const buffer = new ArrayBuffer(zip.byteLength)
+  new Uint8Array(buffer).set(zip)
+  return new Blob([buffer], { type: "application/zip" })
 }
 
 export async function downloadVaultAsMarkdownZip(

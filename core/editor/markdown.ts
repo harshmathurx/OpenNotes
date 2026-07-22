@@ -117,13 +117,21 @@ function listItemInlineTokensToNodes(item: Record<string, unknown>): TextNode[] 
   const tokens = item.tokens as Array<Record<string, unknown>> | undefined
   if (!tokens) return []
 
-  if (tokens.length === 1 && tokens[0]?.type === "text") {
-    return inlineTokensToNodes(
+  const nodes =
+    tokens.length === 1 && tokens[0]?.type === "text"
+      ? inlineTokensToNodes(
       tokens[0].tokens as Array<Record<string, unknown>> | undefined
     )
+      : inlineTokensToNodes(tokens)
+
+  if (item.task && nodes[0]?.type === "text") {
+    nodes[0] = {
+      ...nodes[0],
+      text: nodes[0].text.replace(/^\[[ xX]\]\s*/, ""),
+    }
   }
 
-  return inlineTokensToNodes(tokens)
+  return nodes.filter((node) => node.text.length > 0)
 }
 
 function inlineTokensToNodes(

@@ -29,18 +29,10 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
         </DialogHeader>
 
         <div className="flex flex-col gap-3">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              window.open("/api/auth/github/start", "opennotes-github-oauth")
-            }}
-          >
-            Start GitHub OAuth
-          </Button>
           <p className="text-xs text-muted-foreground">
-            OAuth only works when server-side GitHub OAuth env vars are
-            configured. Otherwise use a personal access token below.
+            Remote storage is disabled by default in this static build. When enabled,
+            GitHub currently connects with a personal access token stored encrypted
+            in the browser. OAuth is deferred until the app has a server-backed deploy.
           </p>
 
           <div className="space-y-1.5">

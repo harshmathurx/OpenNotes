@@ -15,7 +15,6 @@ export function SyncStatusIndicator({
   status,
   count,
   onSync,
-  localOnly = false,
 }: SyncStatusProps) {
   const config: Record<
     SyncStatus,
