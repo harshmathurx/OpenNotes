@@ -13,7 +13,6 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#16a34a" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="OpenNotes" />
       </head>
       <body className="font-sans antialiased">

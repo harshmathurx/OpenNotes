@@ -1,0 +1,176 @@
+# OpenNotes — Release workflow
+#
+# Builds the Tauri v2 Mac app (DMG) for Apple Silicon + Intel and publishes
+# both DMGs to GitHub Releases. See RELEASE.md for how to cut a release.
+#
+# Triggers:
+#   - push of a version tag:  git tag v0.1.0 && git push origin v0.1.0
+#   - manual: Actions → Release → Run workflow (supply a tag like v0.1.0)
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# CODE SIGNING & NOTARIZATION (currently DISABLED — builds are unsigned)
+#
+# The app is not signed or notarized yet, so macOS Gatekeeper warns users on
+# first open (see the "Unsigned app" section in RELEASE.md). The build below
+# is structured so signing turns on without any other changes:
+#
+#   1. Get an Apple Developer ID "Developer ID Application" certificate.
+#   2. Add these repository secrets (Settings → Secrets and variables → Actions):
+#        APPLE_CERTIFICATE            base64-encoded .p12 of the certificate
+#        APPLE_CERTIFICATE_PASSWORD   password for the .p12
+#        APPLE_SIGNING_IDENTITY       e.g. "Developer ID Application: Name (TEAMID)"
+#        APPLE_ID                     Apple ID email (for notarization)
+#        APPLE_PASSWORD               app-specific password (for notarization)
+#        APPLE_TEAM_ID                10-char Apple team ID
+#      (Tauri reads these exact env var names natively — no other wiring needed:
+#      https://v2.tauri.app/distribute/sign/macos/)
+#   3. Flip ENABLE_SIGNING below from "false" to "true".
+#
+# Until then the env vars are passed through only when present, and Tauri
+# simply produces an unsigned DMG. The workflow succeeds either way.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag for the release (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
+
+env:
+  # Flip to "true" once the APPLE_* secrets above are configured.
+  ENABLE_SIGNING: "false"
+  # Release tag: from the pushed tag, or from the manual-dispatch input.
+  RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+
+permissions:
+  contents: write # required to create the GitHub Release and upload assets
+
+jobs:
+  build-dmg:
+    name: Build DMG (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # if one arch fails, still keep the other's artifacts
+      matrix:
+        include:
+          - os: macos-14 # Apple Silicon runner
+            target: aarch64-apple-darwin
+            label: Apple Silicon (aarch64)
+            artifact: opennotes-dmg-aarch64
+          - os: macos-13 # Intel runner
+            target: x86_64-apple-darwin
+            label: Intel (x86_64)
+            artifact: opennotes-dmg-x86_64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # reads the packageManager field / installs standalone pnpm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Setup Rust (${{ matrix.target }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust/Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            src-tauri/target
+          key: ${{ runner.os }}-rust-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock', '**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-${{ matrix.target }}-
+
+      - name: Install frontend dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Build Tauri app (frontend static export + DMG)
+        # TAURI_BUILD=1 makes next.config.mjs emit the static export (output: "export",
+        # distDir: "out") that tauri.conf.json's frontendDist points at. tauri.conf's
+        # beforeBuildCommand sets it too; we also set it here so a bare `pnpm build`
+        # in this step's environment can never produce a server build by accident.
+        env:
+          TAURI_BUILD: "1"
+          # Signing env vars: read from secrets when present, empty otherwise.
+          # Tauri only signs when a signing identity is configured, so the build
+          # succeeds unsigned when these are unset. See the header comment.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ "${{ env.ENABLE_SIGNING }}" = "true" ] && [ -n "$APPLE_CERTIFICATE" ]; then
+            echo "Building SIGNED + notarized DMG for ${{ matrix.target }}"
+          else
+            echo "Building UNSIGNED DMG for ${{ matrix.target }} (signing disabled or secrets absent)"
+          fi
+          pnpm tauri build -- --target ${{ matrix.target }}
+
+      - name: Locate built DMG
+        # aarch64 (native) lands in target/release; x86_64 (cross on the Intel
+        # runner, or explicit --target) lands under the target-triple dir.
+        # Grep for *.dmg so we fail loudly here instead of at upload time.
+        run: |
+          DMG_PATH=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg 2>/dev/null \
+            || ls src-tauri/target/release/bundle/dmg/*.dmg)
+          echo "Found DMG: $DMG_PATH"
+          echo "dmg_path=$DMG_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          # Covers both layouts; upload-artifact errors if nothing matches,
+          # which doubles as a build sanity check.
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build-dmg
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download DMG artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: opennotes-dmg-*
+          path: dist
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: OpenNotes ${{ env.RELEASE_TAG }}
+          # Auto-generate notes from merged PRs/commits since the last tag.
+          generate_release_notes: true
+          # All 0.x releases ship as prereleases until 1.0.
+          prerelease: ${{ !startsWith(env.RELEASE_TAG, 'v1.') }}
+          files: dist/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

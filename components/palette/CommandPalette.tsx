@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import {
   CommandDialog,
   Command,
@@ -10,6 +10,13 @@ import {
   CommandGroup,
   CommandEmpty,
 } from "@/components/ui/command"
+import { openBugReport } from "@/core/feedback/bugReport"
+
+interface ExtensionCommandItem {
+  id: string
+  extensionId: string
+  title: string
+}
 
 interface CommandPaletteProps {
   open: boolean
@@ -18,6 +25,12 @@ interface CommandPaletteProps {
   onSelectFile: (path: string) => void
   onCreateFile: (name: string) => Promise<string>
   onSync: () => void
+  onOpenHome?: () => void
+  onOpenExtensions?: () => void
+  onOpenFolder?: () => void
+  onSwitchFolder?: () => void
+  extensionCommands?: ExtensionCommandItem[]
+  onRunExtensionCommand?: (id: string) => void
 }
 
 export function CommandPalette({
@@ -27,12 +40,24 @@ export function CommandPalette({
   onSelectFile,
   onCreateFile,
   onSync,
+  onOpenHome,
+  onOpenExtensions,
+  onOpenFolder,
+  onSwitchFolder,
+  extensionCommands = [],
+  onRunExtensionCommand,
 }: CommandPaletteProps) {
   const [search, setSearch] = useState("")
 
-  useEffect(() => {
-    if (!open) setSearch("")
-  }, [open])
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setSearch("")
+        onClose()
+      }
+    },
+    [onClose]
+  )
 
   const handleCreate = useCallback(async () => {
     const name = search.trim() || "Untitled"
@@ -46,7 +71,7 @@ export function CommandPalette({
   }, [onSync, onClose])
 
   return (
-    <CommandDialog open={open} onOpenChange={onClose}>
+    <CommandDialog open={open} onOpenChange={handleOpenChange}>
       <Command>
         <CommandInput
           placeholder="Search files or type a command..."
@@ -84,12 +109,82 @@ export function CommandPalette({
               value={`Create new file ${search}`}
               onSelect={() => void handleCreate()}
             >
-              New file{search ? ` "${search}"` : ""}
+              New note{search ? ` "${search}"` : ""}
             </CommandItem>
+            {onOpenHome && (
+              <CommandItem
+                value="Go to workspace home"
+                onSelect={() => {
+                  onOpenHome()
+                  onClose()
+                }}
+              >
+                Go to workspace home
+              </CommandItem>
+            )}
             <CommandItem value="Sync now" onSelect={handleSync}>
               Sync now
             </CommandItem>
+            {onOpenFolder && (
+              <CommandItem
+                value="Open notes folder"
+                onSelect={() => {
+                  onOpenFolder()
+                  onClose()
+                }}
+              >
+                Open notes folder…
+              </CommandItem>
+            )}
+            {onSwitchFolder && (
+              <CommandItem
+                value="Switch notes folder"
+                onSelect={() => {
+                  onSwitchFolder()
+                  onClose()
+                }}
+              >
+                Switch notes folder
+              </CommandItem>
+            )}
+            {onOpenExtensions && (
+              <CommandItem
+                value="Manage extensions"
+                onSelect={() => {
+                  onOpenExtensions()
+                  onClose()
+                }}
+              >
+                Manage extensions
+              </CommandItem>
+            )}
+            <CommandItem
+              value="Report a bug feedback"
+              onSelect={() => {
+                openBugReport()
+                onClose()
+              }}
+            >
+              Report a bug
+            </CommandItem>
           </CommandGroup>
+
+          {extensionCommands.length > 0 && onRunExtensionCommand && (
+            <CommandGroup heading="Extensions">
+              {extensionCommands.map((cmd) => (
+                <CommandItem
+                  key={cmd.id}
+                  value={`extension ${cmd.title} ${cmd.extensionId}`}
+                  onSelect={() => {
+                    onRunExtensionCommand(cmd.id)
+                    onClose()
+                  }}
+                >
+                  {cmd.title}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </CommandList>
       </Command>
     </CommandDialog>

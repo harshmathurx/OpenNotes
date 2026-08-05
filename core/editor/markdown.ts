@@ -49,8 +49,26 @@ function tokenToNode(
       }
 
     case "list": {
-      const listType = (token.ordered as boolean) ? "orderedList" : "bulletList"
       const items = token.items as Array<Record<string, unknown>>
+      const isTaskList = items.some((item) => Boolean(item.task))
+
+      if (isTaskList) {
+        return {
+          type: "taskList",
+          content: items.map((item) => ({
+            type: "taskItem",
+            attrs: { checked: Boolean(item.checked) },
+            content: [
+              {
+                type: "paragraph",
+                content: listItemInlineTokensToNodes(item),
+              },
+            ],
+          })),
+        }
+      }
+
+      const listType = (token.ordered as boolean) ? "orderedList" : "bulletList"
       return {
         type: listType,
         content: items.map((item) => ({
@@ -58,9 +76,7 @@ function tokenToNode(
           content: [
             {
               type: "paragraph",
-              content: inlineTokensToNodes(
-                item.tokens as Array<Record<string, unknown>> | undefined
-              ),
+              content: listItemInlineTokensToNodes(item),
             },
           ],
         })),
@@ -95,6 +111,27 @@ interface TextNode {
   type: "text"
   text: string
   marks?: Array<Record<string, unknown>>
+}
+
+function listItemInlineTokensToNodes(item: Record<string, unknown>): TextNode[] {
+  const tokens = item.tokens as Array<Record<string, unknown>> | undefined
+  if (!tokens) return []
+
+  const nodes =
+    tokens.length === 1 && tokens[0]?.type === "text"
+      ? inlineTokensToNodes(
+      tokens[0].tokens as Array<Record<string, unknown>> | undefined
+    )
+      : inlineTokensToNodes(tokens)
+
+  if (item.task && nodes[0]?.type === "text") {
+    nodes[0] = {
+      ...nodes[0],
+      text: nodes[0].text.replace(/^\[[ xX]\]\s*/, ""),
+    }
+  }
+
+  return nodes.filter((node) => node.text.length > 0)
 }
 
 function inlineTokensToNodes(
