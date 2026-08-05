@@ -1,13 +1,13 @@
 import {
   ArrowRight,
   Download,
-  FileText,
   FolderOpen,
   GitFork,
   Palette,
   Sparkles,
 } from "lucide-react"
 import Link from "next/link"
+import { Logo } from "@/components/Logo"
 
 export default function Landing() {
   return (
@@ -18,7 +18,7 @@ export default function Landing() {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border/70 bg-card">
-            <FileText className="h-3.5 w-3.5 text-foreground" />
+            <Logo size={16} className="text-foreground" />
           </span>
           <span className="text-sm font-semibold tracking-tight">
             OpenNotes

@@ -70,12 +70,12 @@ describe("write path coalescing (disk backend)", () => {
     const dbSpy = spyOnDbPuts()
     try {
       // Leading-edge save (note open / first keystroke after idle).
-      await saveVaultFile("note.md", "k0", false, backend)
+      await saveVaultFile("note.md", "k0", backend)
       expect(backend.writeFile).toHaveBeenCalledTimes(1)
 
       // 20 rapid keystrokes inside the debounce window.
       for (let i = 1; i <= 20; i++) {
-        void saveVaultFile("note.md", `k${i}`, false, backend)
+        void saveVaultFile("note.md", `k${i}`, backend)
       }
       // No additional writes yet — everything is coalescing.
       expect(backend.writeFile).toHaveBeenCalledTimes(1)
@@ -97,8 +97,8 @@ describe("write path coalescing (disk backend)", () => {
 
   it("flush lands a pending write immediately — disk holds the latest before the window ends", async () => {
     const backend = mockBackend()
-    await saveVaultFile("note.md", "typed", false, backend)
-    void saveVaultFile("note.md", "typed more", false, backend)
+    await saveVaultFile("note.md", "typed", backend)
+    void saveVaultFile("note.md", "typed more", backend)
 
     // Cmd+S / note-switch / unmount: durability can't wait for the timer.
     await flushAllVaultSaves()
@@ -111,10 +111,10 @@ describe("write path coalescing (disk backend)", () => {
 
   it("delete flushes the pending save before removing (no lost writes, correct ordering)", async () => {
     const backend = mockBackend()
-    await saveVaultFile("note.md", "final words", false, backend)
-    void saveVaultFile("note.md", "final words!", false, backend)
+    await saveVaultFile("note.md", "final words", backend)
+    void saveVaultFile("note.md", "final words!", backend)
 
-    await deleteVaultFile("note.md", false, backend)
+    await deleteVaultFile("note.md", backend)
 
     // The last content landed on disk BEFORE the delete ran.
     expect(backend.writeFile).toHaveBeenLastCalledWith("note.md", "final words!")
@@ -127,10 +127,10 @@ describe("write path coalescing (disk backend)", () => {
 
   it("rename flushes the pending save first so the new file carries the latest content", async () => {
     const backend = mockBackend()
-    await saveVaultFile("old.md", "draft", false, backend)
-    void saveVaultFile("old.md", "draft v2", false, backend)
+    await saveVaultFile("old.md", "draft", backend)
+    void saveVaultFile("old.md", "draft v2", backend)
 
-    const target = await renameVaultFile("old.md", "renamed", false, backend)
+    const target = await renameVaultFile("old.md", "renamed", backend)
 
     expect(target).toBe("renamed.md")
     // The rename read-old→write-new happened after the flush, so the new
@@ -147,9 +147,9 @@ describe("write path coalescing (IndexedDB-only)", () => {
   it("20 rapid saves → 2 db.files.put calls total, latest content wins", async () => {
     const dbSpy = spyOnDbPuts()
     try {
-      await saveVaultFile("note.md", "v0", false)
+      await saveVaultFile("note.md", "v0")
       for (let i = 1; i <= 20; i++) {
-        void saveVaultFile("note.md", `v${i}`, false)
+        void saveVaultFile("note.md", `v${i}`)
       }
       expect(dbSpy.calls.filter((c) => c.path === "note.md")).toHaveLength(1)
 
@@ -165,9 +165,9 @@ describe("write path coalescing (IndexedDB-only)", () => {
   })
 
   it("saves to different notes never coalesce into each other", async () => {
-    await saveVaultFile("a.md", "A", false)
-    await saveVaultFile("b.md", "B", false)
-    void saveVaultFile("a.md", "A2", false)
+    await saveVaultFile("a.md", "A")
+    await saveVaultFile("b.md", "B")
+    void saveVaultFile("a.md", "A2")
 
     await flushAllVaultSaves()
 
@@ -179,9 +179,9 @@ describe("write path coalescing (IndexedDB-only)", () => {
     // Real-timer proof that no manual flush is required for durability:
     // typing then pausing persists the latest content on the trailing edge.
     const backend = mockBackend()
-    await saveVaultFile("note.md", "start", false, backend)
+    await saveVaultFile("note.md", "start", backend)
     for (let i = 1; i <= 10; i++) {
-      void saveVaultFile("note.md", `start +${i}`, false, backend)
+      void saveVaultFile("note.md", `start +${i}`, backend)
     }
     expect(backend.writeFile).toHaveBeenCalledTimes(1)
 

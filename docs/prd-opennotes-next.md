@@ -24,7 +24,7 @@
 
 The **Mac app (Tauri)** is the real home: native folder access, macOS Keychain for the few secrets that remain (OAuth tokens, AI keys), offline-first, feels like a real app.
 
-The **web app is the instant front door**: open a URL, start typing in 5 seconds (IndexedDB, no account), upgrade to a real folder via the File System Access API (Chrome/Edge), install as PWA, or get the Mac app for the full experience.
+The **Mac app is the product**: real `.md` files in a notes folder you pick, git sync via your local git, secrets in the macOS Keychain. The web build is the same codebase for development and as a tech preview, but the Mac app is where the sovereign experience — real files on disk, git sync — lives.
 
 ## 2. The one-sentence pitch
 

@@ -409,22 +409,34 @@ export function OnboardingFlow({
 
             <div className="flex flex-col items-center gap-1">
               {folderPath ? (
-                <Button
-                  data-primary
-                  size="lg"
-                  className="w-full max-w-xs gap-2"
-                  onClick={() => setScreen("done")}
-                  aria-label={
-                    screen === "config-folder"
+                <>
+                  <Button
+                    data-primary
+                    size="lg"
+                    className="w-full max-w-xs gap-2"
+                    onClick={() => setScreen("done")}
+                    aria-label={
+                      screen === "config-folder"
+                        ? C.configFolder.continue
+                        : C.configGit.continue
+                    }
+                  >
+                    {screen === "config-folder"
                       ? C.configFolder.continue
-                      : C.configGit.continue
-                  }
-                >
-                  {screen === "config-folder"
-                    ? C.configFolder.continue
-                    : C.configGit.continue}
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Button>
+                      : C.configGit.continue}
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Button>
+                  {/* Let the user change their pick before continuing — a picked
+                      folder is not a commitment. */}
+                  <button
+                    type="button"
+                    disabled={picking}
+                    onClick={() => void handlePickFolder()}
+                    className="mt-0.5 text-xs text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground disabled:opacity-50"
+                  >
+                    {picking ? "Choosing…" : "Choose a different folder"}
+                  </button>
+                </>
               ) : (
                 <Button
                   data-primary

@@ -8,27 +8,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import {
-  BadgeCheck,
-  Cloud,
-  CloudOff,
-  GitBranch,
-  HardDrive,
-  Puzzle,
-  Sparkles,
-} from "lucide-react"
+import { FolderGit2, Puzzle, Sparkles, Bug } from "lucide-react"
+import { openBugReport } from "@/core/feedback/bugReport"
 
 interface SettingsModalProps {
   open: boolean
   onClose: () => void
-  providerName: string
-  remoteEnabled: boolean
-  remoteActive: boolean
-  remoteError: string | null
-  unsyncedCount: number
-  onOpenGitHub: () => void
-  onUseLocal: () => void
-  onSyncNow: () => void
+  /** Name of the notes folder currently in use (basename), or null. */
+  notesFolderName: string | null
+  isDesktop: boolean
+  onOpenGitSync?: () => void
+  onChangeFolder?: () => void
   onOpenExtensions?: () => void
   onOpenAI?: () => void
 }
@@ -36,14 +26,10 @@ interface SettingsModalProps {
 export function SettingsModal({
   open,
   onClose,
-  providerName,
-  remoteEnabled,
-  remoteActive,
-  remoteError,
-  unsyncedCount,
-  onOpenGitHub,
-  onUseLocal,
-  onSyncNow,
+  notesFolderName,
+  isDesktop,
+  onOpenGitSync,
+  onChangeFolder,
   onOpenExtensions,
   onOpenAI,
 }: SettingsModalProps) {
@@ -53,7 +39,7 @@ export function SettingsModal({
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            Choose where notes are stored and check sync health.
+            Where your notes live, and the tools you have turned on.
           </DialogDescription>
         </DialogHeader>
 
@@ -61,74 +47,37 @@ export function SettingsModal({
           <section className="rounded-lg border p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-medium">Storage</h3>
+                <h3 className="text-sm font-medium">Notes folder</h3>
                 <p className="text-xs text-muted-foreground">
-                  Current: {providerName}
+                  {notesFolderName
+                    ? `Your notes are real files in ${notesFolderName}.`
+                    : "Your notes are stored on this device."}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                {remoteActive ? (
-                  <Cloud className="h-3.5 w-3.5 text-emerald-600" />
-                ) : (
-                  <HardDrive className="h-3.5 w-3.5" />
-                )}
-                {remoteActive ? "GitHub sync on" : "Local browser"}
-              </div>
             </div>
-
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button
-                variant={remoteActive ? "outline" : "default"}
-                className="h-auto justify-start gap-3 py-3"
-                onClick={onUseLocal}
-              >
-                <HardDrive className="h-4 w-4" />
-                <span className="text-left">
-                  <span className="block text-sm">Use this browser</span>
-                  <span className="block text-xs opacity-70">No account needed</span>
-                </span>
-              </Button>
-              <Button
-                variant={remoteActive ? "default" : "outline"}
-                className="h-auto justify-start gap-3 py-3"
-                onClick={onOpenGitHub}
-                disabled={!remoteEnabled}
-              >
-                <GitBranch className="h-4 w-4" />
-                <span className="text-left">
-                  <span className="block text-sm">Sync to GitHub</span>
-                  <span className="block text-xs opacity-70">One repo = one notes folder</span>
-                </span>
-              </Button>
+            <div className="flex flex-wrap gap-2">
+              {onChangeFolder && isDesktop && (
+                <Button variant="outline" size="sm" onClick={onChangeFolder}>
+                  Change folder…
+                </Button>
+              )}
+              {onOpenGitSync && isDesktop && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onOpenGitSync}
+                  className="gap-1.5"
+                >
+                  <FolderGit2 className="h-3.5 w-3.5" />
+                  Open Git Sync
+                </Button>
+              )}
             </div>
-
-            {!remoteEnabled && (
-              <p className="mt-3 flex gap-2 text-xs text-muted-foreground">
-                <CloudOff className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                GitHub sync is hidden in this build. Remove
-                NEXT_PUBLIC_ENABLE_REMOTE_STORAGE=false to enable it.
+            {!isDesktop && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Folders and git sync work best in the OpenNotes Mac app.
               </p>
             )}
-            {remoteError && (
-              <p className="mt-3 text-xs text-destructive">{remoteError}</p>
-            )}
-          </section>
-
-          <section className="rounded-lg border p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-medium">Sync health</h3>
-                <p className="text-xs text-muted-foreground">
-                  {unsyncedCount > 0
-                    ? `${unsyncedCount} local change${unsyncedCount === 1 ? "" : "s"} waiting to sync.`
-                    : "No pending local changes."}
-                </p>
-              </div>
-              <BadgeCheck className="h-4 w-4 text-emerald-600" />
-            </div>
-            <Button variant="outline" size="sm" onClick={onSyncNow}>
-              Sync now
-            </Button>
           </section>
 
           {(onOpenExtensions || onOpenAI) && (
@@ -168,6 +117,31 @@ export function SettingsModal({
               </div>
             </section>
           )}
+
+          <section className="rounded-lg border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-medium">Something not right?</h3>
+                <p className="text-xs text-muted-foreground">
+                  Report a bug on GitHub. We never collect telemetry — the
+                  report only carries what you choose to share, plus your app
+                  version and platform.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  openBugReport()
+                  onClose()
+                }}
+                className="shrink-0 gap-1.5"
+              >
+                <Bug className="h-3.5 w-3.5" />
+                Report a bug
+              </Button>
+            </div>
+          </section>
         </div>
       </DialogContent>
     </Dialog>

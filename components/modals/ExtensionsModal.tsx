@@ -66,23 +66,10 @@ export function ExtensionsModal({ open, onClose }: ExtensionsModalProps) {
                     <div className="flex items-start gap-3">
                       <Package className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                       <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-sm font-medium">{ext.manifest.name}</h3>
-                          <span className="text-xs text-muted-foreground">
-                            v{ext.manifest.version}
-                          </span>
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-[0.7rem] text-muted-foreground">
-                            built-in sample
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <h3 className="text-sm font-medium">{ext.manifest.name}</h3>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                           {ext.manifest.description}
                         </p>
-                        {ext.manifest.author && (
-                          <p className="mt-1 text-[0.7rem] text-muted-foreground/70">
-                            {ext.manifest.author}
-                          </p>
-                        )}
                       </div>
                     </div>
 

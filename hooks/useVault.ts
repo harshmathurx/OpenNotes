@@ -21,14 +21,9 @@ import { reconcileFromDisk } from "@/core/vault/diskMirror"
 
 const STORAGE_KEY = "opennotes-active-file"
 
-interface UseVaultOptions {
-  remoteActive?: boolean
-}
-
-export function useVault(options: UseVaultOptions = {}) {
+export function useVault() {
   const liveFiles = useLiveQuery(() => db.files.orderBy("path").toArray(), [])
   const files = useMemo(() => liveFiles ?? [], [liveFiles])
-  const remoteActive = options.remoteActive ?? false
   const [activeFileState, setActiveFileState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null
     return localStorage.getItem(STORAGE_KEY)
@@ -126,7 +121,7 @@ export function useVault(options: UseVaultOptions = {}) {
       if (backend) {
         // Write the empty note to disk first so it exists as a real .md
         // immediately, then mirror into the cache.
-        await saveVaultFile(uniquePath, "", remoteActive, backend)
+        await saveVaultFile(uniquePath, "", backend)
       } else {
         await db.files.put({
           path: uniquePath,
@@ -139,36 +134,36 @@ export function useVault(options: UseVaultOptions = {}) {
       setActiveFileState(uniquePath)
       return uniquePath
     },
-    [files, backend, remoteActive]
+    [files, backend]
   )
 
   const saveFile = useCallback(
     async (path: string, content: string) => {
-      await saveVaultFile(path, content, remoteActive, backend)
+      await saveVaultFile(path, content, backend)
     },
-    [remoteActive, backend]
+    [backend]
   )
 
   const renameFile = useCallback(
     async (oldPath: string, newPath: string) => {
-      const target = await renameVaultFile(oldPath, newPath, remoteActive, backend)
+      const target = await renameVaultFile(oldPath, newPath, backend)
       if (target && activeFile === oldPath) {
         setActiveFileState(target)
       }
     },
-    [activeFile, remoteActive, backend]
+    [activeFile, backend]
   )
 
   const deleteFile = useCallback(
     async (path: string) => {
-      await deleteVaultFile(path, remoteActive, backend)
+      await deleteVaultFile(path, backend)
       if (activeFile === path) {
         const remaining = files.filter((f) => f.path !== path)
         const next = remaining[0]?.path ?? null
         setActiveFileState(next)
       }
     },
-    [activeFile, files, remoteActive, backend]
+    [activeFile, files, backend]
   )
 
   return {

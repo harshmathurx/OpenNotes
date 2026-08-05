@@ -10,6 +10,7 @@ import {
   CommandGroup,
   CommandEmpty,
 } from "@/components/ui/command"
+import { openBugReport } from "@/core/feedback/bugReport"
 
 interface ExtensionCommandItem {
   id: string
@@ -24,8 +25,6 @@ interface CommandPaletteProps {
   onSelectFile: (path: string) => void
   onCreateFile: (name: string) => Promise<string>
   onSync: () => void
-  remoteEnabled?: boolean
-  onOpenStorage?: () => void
   onOpenHome?: () => void
   onOpenExtensions?: () => void
   onOpenFolder?: () => void
@@ -41,8 +40,6 @@ export function CommandPalette({
   onSelectFile,
   onCreateFile,
   onSync,
-  remoteEnabled = false,
-  onOpenStorage,
   onOpenHome,
   onOpenExtensions,
   onOpenFolder,
@@ -161,17 +158,15 @@ export function CommandPalette({
                 Manage extensions
               </CommandItem>
             )}
-            {remoteEnabled && onOpenStorage && (
-              <CommandItem
-                value="Connect storage GitHub remote"
-                onSelect={() => {
-                  onOpenStorage()
-                  onClose()
-                }}
-              >
-                Connect storage...
-              </CommandItem>
-            )}
+            <CommandItem
+              value="Report a bug feedback"
+              onSelect={() => {
+                openBugReport()
+                onClose()
+              }}
+            >
+              Report a bug
+            </CommandItem>
           </CommandGroup>
 
           {extensionCommands.length > 0 && onRunExtensionCommand && (

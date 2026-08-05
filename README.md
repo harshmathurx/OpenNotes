@@ -9,17 +9,15 @@ OpenNotes is a calm, open-source, local-first markdown workspace. Your notes sta
 [![Local-first](https://img.shields.io/badge/made%20with-local--first-informational.svg)](https://www.inkandswitch.com/local-first/)
 [![Download](https://img.shields.io/github/v/release/harshmathurx/OpenNotes?include_prereleases&label=download)](https://github.com/harshmathurx/OpenNotes/releases)
 
-<!-- Hero image: screenshots/final-02-editor-content.png must exist in the repo (it is committed).
-     If a designed hero is added later at docs/design/hero.png, swap the src below. -->
-<img src="screenshots/final-02-editor-content.png" alt="OpenNotes editor with a markdown document open, showing the calm writing surface and sidebar" width="100%">
+<img src="screenshots/hero.png" alt="OpenNotes Mac app: a markdown note in the editor beside the Git Sync panel with the sync status banner" width="100%">
 
 ## Download
 
-Get the OpenNotes Mac app (Apple Silicon or Intel) from the [Releases page](https://github.com/harshmathurx/OpenNotes/releases).
-
-**The web app** — you can also open OpenNotes in a browser. There is no hosted deployment yet: run it locally (see [Local development](#local-development) below) or self-host it from [this repo](https://github.com/harshmathurx/OpenNotes).
+**OpenNotes is a Mac app.** Get it (Apple Silicon or Intel) from the [Releases page](https://github.com/harshmathurx/OpenNotes/releases).
 
 The Mac app is not yet signed with an Apple certificate, so macOS will warn on first open — right-click → Open → Open to proceed. Signing is on the roadmap (see RELEASE.md).
+
+The same codebase also runs in a browser (`pnpm dev`) for development and as a tech preview, but the Mac app is the product: it is where real files on disk and git sync live.
 
 ## Why OpenNotes
 
@@ -41,13 +39,13 @@ The bet: a small, excellent core plus a clean extension API beats a bloated app.
 
 ## The Mac app
 
-The web app is the instant front door. The Mac app (`src-tauri`, Tauri v2) is the real home:
+OpenNotes is a Mac app (`src-tauri`, Tauri v2). It is the home of everything that makes the product sovereign:
 
-- Real `.md` files in a notes folder you pick — grep them, back them up, open them in any editor.
+- **Real `.md` files** in a notes folder you pick — grep them, back them up, open them in any editor.
 - **Git Sync** through your local git binary with your own SSH/agent credentials — VS Code-style sync, no tokens, we never see a secret.
-- AI keys and other secrets live in the macOS Keychain, not in browser storage.
+- **AI keys and other secrets** live in the macOS Keychain, not in browser storage.
 
-The Mac app is in active development. The direction is set; expect rough edges.
+The web build is the same codebase for development and preview, but the Mac app is the product. It is in active development; expect rough edges.
 
 ## Extensions
 

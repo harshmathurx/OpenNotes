@@ -9,18 +9,15 @@ import { WorkspaceHome } from "./WorkspaceHome"
 import { PanelHost, getPersistedActivePanel, persistActivePanel } from "./PanelHost"
 import { TiptapEditor, type TiptapEditorHandle } from "../editor/TiptapEditor"
 import { CommandPalette } from "../palette/CommandPalette"
-import { ConflictModal } from "../modals/ConflictModal"
-import { ProviderPicker } from "../modals/ProviderPicker"
-import { RepoPicker } from "../modals/RepoPicker"
 import { SettingsModal } from "../modals/SettingsModal"
 import { ExtensionsModal } from "../modals/ExtensionsModal"
 import { AIOptionsDialog } from "../modals/AIOptionsDialog"
 import { useVault } from "@/hooks/useVault"
 import { useNotesFolderActions } from "@/hooks/useNotesFolderActions"
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow"
-import { useSync } from "@/hooks/useSync"
-import { useStorage } from "@/hooks/useStorage"
 import { useExtensions } from "@/hooks/useExtensions"
+import { flushAllVaultSaves } from "@/core/vault/mutations"
+import { getNotesFolder } from "@/core/vault/notesFolder"
 import { useAISettings } from "@/hooks/useAISettings"
 import { streamAICoWriter } from "@/core/ai/stream"
 import { initInstallListener } from "@/core/registry/installListener"
@@ -36,15 +33,6 @@ import { Plus, FileText, FolderOpen } from "lucide-react"
 
 export function AppShell() {
   const {
-    activeProvider,
-    connectGitHub,
-    connectLocal,
-    disconnectRemote,
-    remoteEnabled,
-    remoteActive,
-    remoteError,
-  } = useStorage()
-  const {
     files,
     activeFile,
     setActiveFile,
@@ -52,8 +40,7 @@ export function AppShell() {
     saveFile,
     renameFile,
     deleteFile,
-  } = useVault({ remoteActive })
-  const { status, unsyncedCount, flush } = useSync(activeProvider)
+  } = useVault()
   const { activeKey, provider, ollamaUrl } = useAISettings()
   const { pickNotesFolder, isDesktop } = useNotesFolderActions()
 
@@ -84,17 +71,10 @@ export function AppShell() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [extensionsOpen, setExtensionsOpen] = useState(false)
   const [aiOptionsOpen, setAiOptionsOpen] = useState(false)
-  const [providerOpen, setProviderOpen] = useState(false)
-  const [repoOpen, setRepoOpen] = useState(false)
   const [view, setView] = useState<"editor" | "home">("editor")
   const [activePanelId, setActivePanelId] = useState<string | null>(() =>
     getPersistedActivePanel()
   )
-  const [conflict, setConflict] = useState<{
-    path: string
-    local: string
-    remote: string
-  } | null>(null)
 
   const editorRef = useRef<TiptapEditorHandle>(null)
 
@@ -106,11 +86,23 @@ export function AppShell() {
   const activeContent = files.find((f) => f.path === activeFile)?.content ?? ""
   const isHome = view === "home"
 
+  // Mirror the live active file + content into refs so extension handlers
+  // always act on the CURRENT note, even when they run in the same event turn
+  // that changed it (e.g. createNote() then setActiveNoteContent() back-to-back
+  // would otherwise overwrite the PREVIOUS note via a stale closure).
+  const activeFileRef = useRef(activeFile)
+  const activeContentRef = useRef(activeContent)
+  useEffect(() => {
+    activeFileRef.current = activeFile
+    activeContentRef.current = activeContent
+  }, [activeFile, activeContent])
+
   // ----- Editor <-> extension bridge handlers -----
   const getActiveNote = useCallback(() => {
-    if (!activeFile || isHome) return null
-    return { path: activeFile, content: activeContent }
-  }, [activeFile, activeContent, isHome])
+    const path = activeFileRef.current
+    if (!path || isHome) return null
+    return { path, content: activeContentRef.current }
+  }, [isHome])
 
   const getNotes = useCallback(
     () => files.map((f) => ({ path: f.path, content: f.content })),
@@ -128,6 +120,14 @@ export function AppShell() {
   const createNote = useCallback(
     async (name?: string) => {
       const path = await createFile(name)
+      // Update the live ref SYNCHRONOUSLY so an immediately-following handler
+      // (e.g. a template's setActiveNoteContent) targets the NEW note, not the
+      // previous one — React state (and the ref-sync effect) only catches up on
+      // the next render, which is too late for same-turn callers.
+      if (path) {
+        activeFileRef.current = path
+        activeContentRef.current = ""
+      }
       setView("editor")
       return path ?? null
     },
@@ -136,13 +136,14 @@ export function AppShell() {
 
   const insertIntoActiveNote = useCallback(
     (markdown: string) => {
+      const path = activeFileRef.current
       if (editorRef.current && !isHome) {
         editorRef.current.insertMarkdown(markdown)
-      } else if (activeFile && !isHome) {
-        void saveFile(activeFile, activeContent + markdown)
+      } else if (path && !isHome) {
+        void saveFile(path, activeContentRef.current + markdown)
       }
     },
-    [activeFile, activeContent, isHome, saveFile]
+    [isHome, saveFile]
   )
 
   const getSelection = useCallback(
@@ -156,12 +157,13 @@ export function AppShell() {
 
   const setActiveNoteContent = useCallback(
     (markdown: string) => {
-      if (activeFile && !isHome) {
-        void saveFile(activeFile, markdown)
+      const path = activeFileRef.current
+      if (path && !isHome) {
+        void saveFile(path, markdown)
         editorRef.current?.setMarkdown(markdown)
       }
     },
-    [activeFile, isHome, saveFile]
+    [isHome, saveFile]
   )
 
   const showToast = useCallback((message: string) => {
@@ -216,19 +218,11 @@ export function AppShell() {
     return cleanup
   }, [])
 
-  // ----- Global listeners: conflicts + AI settings event -----
+  // ----- Global listeners: AI settings event -----
   useEffect(() => {
-    const conflictHandler = (e: Event) => {
-      const detail = (
-        e as CustomEvent<{ path: string; local: string; remote: string }>
-      ).detail
-      setConflict(detail)
-    }
     const aiSettingsHandler = () => setAiOptionsOpen(true)
-    window.addEventListener("sync-conflict", conflictHandler)
     window.addEventListener("open-ai-settings", aiSettingsHandler)
     return () => {
-      window.removeEventListener("sync-conflict", conflictHandler)
       window.removeEventListener("open-ai-settings", aiSettingsHandler)
     }
   }, [])
@@ -278,9 +272,12 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", handler)
   }, [commandOpen, zenMode, createFile, setActiveFile])
 
+  // Cmd+S / explicit save: land every queued vault write immediately so the
+  // note on disk (or in the cache) is current. Notes autosave continuously;
+  // this only forces pending writes to flush now.
   const handleSave = useCallback(() => {
-    void flush()
-  }, [flush])
+    void flushAllVaultSaves()
+  }, [])
 
   const goHome = useCallback(() => setView("home"), [])
 
@@ -289,6 +286,20 @@ export function AppShell() {
   const handleOpenFolder = useCallback(() => {
     void pickNotesFolder()
   }, [pickNotesFolder])
+
+  // Open the Git Sync extension panel (source control for the notes folder).
+  const handleOpenGitSync = useCallback(() => {
+    setSettingsOpen(false)
+    setActivePanelId("git-sync:git-sync")
+  }, [])
+
+  // Basename of the notes folder for display, or null when none is set.
+  const notesFolderName = useMemo(() => {
+    const folder = getNotesFolder()
+    if (!folder) return null
+    const segments = folder.split(/[\\/]/).filter(Boolean)
+    return segments[segments.length - 1] ?? folder
+  }, [])
 
   // ----- Onboarding completion -----
   const completeOnboarding = useCallback(() => {
@@ -361,30 +372,6 @@ export function AppShell() {
             Connect a notes folder
           </Button>
         </div>
-        {remoteEnabled && (
-          <>
-            <ProviderPicker
-              open={providerOpen}
-              onClose={() => setProviderOpen(false)}
-              onSelectLocal={() => {
-                void connectLocal()
-                setProviderOpen(false)
-              }}
-              onSelectGitHub={() => {
-                setProviderOpen(false)
-                setRepoOpen(true)
-              }}
-            />
-            <RepoPicker
-              open={repoOpen}
-              onClose={() => setRepoOpen(false)}
-              onSelect={async (owner, repo, token) => {
-                const connected = await connectGitHub(owner, repo, token)
-                if (connected) setRepoOpen(false)
-              }}
-            />
-          </>
-        )}
       </div>
     )
   }
@@ -454,11 +441,7 @@ export function AppShell() {
             }}
             homeActive={isHome}
           >
-            <SyncStatusIndicator
-              status={status}
-              count={unsyncedCount}
-              onSync={handleSave}
-            />
+            <SyncStatusIndicator onSync={handleSave} />
           </TitleBar>
         )}
 
@@ -532,8 +515,6 @@ export function AppShell() {
           }}
           onCreateFile={createFile}
           onSync={handleSave}
-          remoteEnabled={remoteEnabled}
-          onOpenStorage={() => setProviderOpen(true)}
           onOpenHome={goHome}
           onOpenExtensions={() => setExtensionsOpen(true)}
           onOpenFolder={handleOpenFolder}
@@ -546,20 +527,10 @@ export function AppShell() {
       <SettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        providerName={activeProvider.name}
-        remoteEnabled={remoteEnabled}
-        remoteActive={remoteActive}
-        remoteError={remoteError}
-        unsyncedCount={unsyncedCount}
-        onOpenGitHub={() => {
-          setSettingsOpen(false)
-          setRepoOpen(true)
-        }}
-        onUseLocal={() => {
-          void disconnectRemote()
-          setSettingsOpen(false)
-        }}
-        onSyncNow={handleSave}
+        notesFolderName={notesFolderName}
+        isDesktop={isDesktop}
+        onOpenGitSync={handleOpenGitSync}
+        onChangeFolder={handleOpenFolder}
         onOpenExtensions={() => {
           setSettingsOpen(false)
           setExtensionsOpen(true)
@@ -579,50 +550,6 @@ export function AppShell() {
         open={aiOptionsOpen}
         onClose={() => setAiOptionsOpen(false)}
       />
-
-      {remoteEnabled && (
-        <>
-          <ProviderPicker
-            open={providerOpen}
-            onClose={() => setProviderOpen(false)}
-            onSelectLocal={() => {
-              void connectLocal()
-              setProviderOpen(false)
-            }}
-            onSelectGitHub={() => {
-              setProviderOpen(false)
-              setRepoOpen(true)
-            }}
-          />
-          <RepoPicker
-            open={repoOpen}
-            onClose={() => setRepoOpen(false)}
-            onSelect={async (owner, repo, token) => {
-              const connected = await connectGitHub(owner, repo, token)
-              if (connected) setRepoOpen(false)
-            }}
-          />
-          {remoteError && (
-            <div className="fixed right-3 bottom-3 rounded-md border bg-background px-3 py-2 text-xs text-destructive shadow">
-              {remoteError}
-            </div>
-          )}
-        </>
-      )}
-
-      {conflict && (
-        <ConflictModal
-          open={!!conflict}
-          path={conflict.path}
-          localContent={conflict.local}
-          remoteContent={conflict.remote}
-          onResolve={(content) => {
-            saveFile(conflict.path, content)
-            void flush()
-          }}
-          onClose={() => setConflict(null)}
-        />
-      )}
     </div>
   )
 }
