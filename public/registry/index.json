@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-05T00:00:00.000Z",
+  "entries": [
+    {
+      "id": "git-sync",
+      "name": "Git Sync",
+      "version": "0.1.0",
+      "description": "Sync your notes folder with your local git — VS Code-style, no tokens.",
+      "author": "OpenNotes",
+      "repo": "https://github.com/opennotes/opennotes/tree/main/extensions/gitSync",
+      "tags": ["sync", "git"],
+      "kind": "core"
+    },
+    {
+      "id": "templates",
+      "name": "Templates",
+      "version": "0.1.0",
+      "description": "Insert rich note templates with date, time, and title variables.",
+      "author": "OpenNotes",
+      "repo": "https://github.com/opennotes/opennotes/tree/main/extensions/templates",
+      "tags": ["productivity", "writing"],
+      "kind": "core"
+    },
+    {
+      "id": "export",
+      "name": "Export",
+      "version": "0.1.0",
+      "description": "Export notes to Markdown, styled HTML, or a zip bundle.",
+      "author": "OpenNotes",
+      "repo": "https://github.com/opennotes/opennotes/tree/main/extensions/export",
+      "tags": ["export", "sharing"],
+      "kind": "core"
+    },
+    {
+      "id": "backlinks",
+      "name": "Backlinks",
+      "version": "0.1.0",
+      "description": "See which notes link here, and where this note links.",
+      "author": "OpenNotes",
+      "repo": "https://github.com/opennotes/opennotes/tree/main/extensions/backlinks",
+      "tags": ["links", "graph"],
+      "kind": "core"
+    },
+    {
+      "id": "ai-cowriter",
+      "name": "AI Co-Writer",
+      "version": "0.1.0",
+      "description": "An optional writing partner on your own API key or local model. Off by default.",
+      "author": "OpenNotes",
+      "repo": "https://github.com/opennotes/opennotes/tree/main/extensions/aiCowriter",
+      "tags": ["ai", "writing"],
+      "kind": "core"
+    },
+    {
+      "id": "daily-quotes",
+      "name": "Daily Quotes",
+      "version": "0.2.1",
+      "description": "Start each note with a curated quote — writing prompts on autopilot.",
+      "author": "OpenNotes Community",
+      "repo": "https://github.com/opennotes-community/daily-quotes",
+      "homepage": "https://github.com/opennotes-community/daily-quotes#readme",
+      "tags": ["writing", "inspiration"],
+      "kind": "community",
+      "download": {
+        "type": "repo-dir",
+        "url": "https://github.com/opennotes-community/daily-quotes/tree/main/extension"
+      }
+    },
+    {
+      "id": "reading-list",
+      "name": "Reading List",
+      "version": "1.0.0",
+      "description": "Track articles and books to read, with a dockable queue panel.",
+      "author": "OpenNotes Community",
+      "repo": "https://github.com/opennotes-community/reading-list",
+      "tags": ["organization", "panel"],
+      "kind": "community",
+      "download": {
+        "type": "github-release",
+        "url": "https://github.com/opennotes-community/reading-list/releases/latest/download/reading-list.zip"
+      }
+    },
+    {
+      "id": "pomodoro",
+      "name": "Pomodoro",
+      "version": "0.1.3",
+      "description": "A calm focus timer in a side panel — 25 minutes on, 5 off.",
+      "author": "OpenNotes Community",
+      "repo": "https://github.com/opennotes-community/pomodoro",
+      "tags": ["focus", "timer", "panel"],
+      "kind": "community",
+      "download": {
+        "type": "repo-dir",
+        "url": "https://github.com/opennotes-community/pomodoro/tree/main/extension"
+      }
+    }
+  ]
+}

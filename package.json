@@ -1,17 +1,40 @@
 {
   "name": "opennotes",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
-  "private": true,
+  "description": "A calm, open-source, local-first markdown workspace. Your notes. Real files. Your storage. Your AI.",
+  "author": "Harsh Mathur",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harshmathurx/OpenNotes.git"
+  },
+  "homepage": "https://github.com/harshmathurx/OpenNotes",
+  "keywords": [
+    "markdown",
+    "notes",
+    "local-first",
+    "obsidian-alternative",
+    "open-source",
+    "editor",
+    "git",
+    "tauri"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
     "@base-ui/react": "^1.4.1",
     "@codemirror/autocomplete": "^6.20.2",
     "@codemirror/commands": "^6.10.3",
@@ -74,6 +97,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@tauri-apps/cli": "^2",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",

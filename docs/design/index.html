@@ -1,0 +1,3750 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenNotes Design System</title>
+    <style>
+      :root {
+        --g: #16a34a;
+        --gd: #15803d;
+        --w: #fff;
+        --bg: #fafafa;
+        --t: #0f0f0f;
+        --t2: #525252;
+        --tm: #737373;
+        --b: #e5e5e5;
+        --bl: #f0f0f0;
+        --r: 8px;
+        --rl: 12px;
+      }
+      [data-theme="dark"] {
+        --bg: #0f0f0f;
+        --w: #1a1a1a;
+        --t: #f5f5f5;
+        --t2: #a3a3a3;
+        --tm: #737373;
+        --b: #2a2a2a;
+        --bl: #1f1f1f;
+        --g: #22c55e;
+        --gd: #4ade80;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--t);
+        line-height: 1.6;
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 260px;
+        background: var(--w);
+        border-right: 1px solid var(--b);
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 100;
+        padding: 20px 0;
+      }
+      .sb-brand {
+        padding: 0 20px 16px;
+        border-bottom: 1px solid var(--bl);
+        margin-bottom: 12px;
+      }
+      .sb-brand h1 {
+        font-size: 18px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sb-brand .dot {
+        width: 10px;
+        height: 10px;
+        background: var(--g);
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .sb-brand p {
+        font-size: 11px;
+        color: var(--tm);
+        margin-top: 4px;
+      }
+      .nav-sec {
+        margin-bottom: 4px;
+      }
+      .nav-sec-t {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--tm);
+        padding: 14px 20px 6px;
+      }
+      .nav-link {
+        display: block;
+        padding: 8px 20px;
+        color: var(--t2);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.15s;
+        border-left: 3px solid transparent;
+      }
+      .nav-link:hover {
+        background: var(--bg);
+        color: var(--t);
+      }
+      .nav-link.active {
+        background: rgba(22, 163, 74, 0.06);
+        color: var(--g);
+        border-left-color: var(--g);
+        font-weight: 600;
+      }
+      .nav-link .num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--tm);
+        margin-right: 6px;
+      }
+      .nav-link.active .num {
+        color: var(--g);
+      }
+      .main {
+        margin-left: 260px;
+        flex: 1;
+        padding: 40px 48px;
+        max-width: 900px;
+      }
+      .section {
+        display: none;
+        animation: fIn 0.25s ease;
+      }
+      .section.active {
+        display: block;
+      }
+      .section-full {
+        max-width: none;
+        margin-left: calc(-48px);
+        margin-right: calc(-48px);
+        width: calc(100% + 96px);
+      }
+      .section-full .sec-hd {
+        padding: 0 48px;
+      }
+      @keyframes fIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .sec-hd {
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--b);
+      }
+      .sec-hd h2 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        letter-spacing: -0.3px;
+      }
+      .sec-hd p {
+        color: var(--t2);
+        font-size: 14px;
+      }
+      .sec-hd .tag {
+        display: inline-block;
+        background: rgba(22, 163, 74, 0.1);
+        color: var(--g);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+      }
+      .card {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+      .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-title .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--g);
+        color: white;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .grid3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+      }
+      @media (max-width: 768px) {
+        .grid2,
+        .grid3 {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+        .main {
+          margin-left: 0;
+          padding: 16px;
+        }
+      }
+      .tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 8px 0;
+      }
+      .tbl th {
+        text-align: left;
+        padding: 8px 10px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--tm);
+        font-weight: 600;
+        background: var(--bg);
+        border-bottom: 1px solid var(--b);
+      }
+      .tbl td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--bl);
+        vertical-align: top;
+      }
+      .tbl tr:hover td {
+        background: rgba(22, 163, 74, 0.02);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .badge-g {
+        background: rgba(22, 163, 74, 0.1);
+        color: var(--gd);
+      }
+      .badge-a {
+        background: rgba(245, 158, 11, 0.1);
+        color: #b45309;
+      }
+      .badge-r {
+        background: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+      }
+      .badge-b {
+        background: rgba(59, 130, 246, 0.1);
+        color: #1d4ed8;
+      }
+      .note {
+        background: rgba(59, 130, 246, 0.05);
+        border-left: 3px solid #3b82f6;
+        padding: 12px 14px;
+        border-radius: 0 var(--r) var(--r) 0;
+        margin: 14px 0;
+        font-size: 13px;
+        color: var(--t2);
+      }
+      .warn {
+        background: rgba(245, 158, 11, 0.05);
+        border-left: 3px solid #f59e0b;
+        padding: 12px 14px;
+        border-radius: 0 var(--r) var(--r) 0;
+        margin: 14px 0;
+        font-size: 13px;
+        color: var(--t2);
+      }
+      kbd {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 2px 6px;
+        background: var(--bg);
+        border: 1px solid var(--b);
+        border-radius: 4px;
+        box-shadow: 0 1px 0 var(--b);
+      }
+      .hl {
+        background: rgba(22, 163, 74, 0.07);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 28px 0 14px;
+        letter-spacing: -0.2px;
+      }
+      h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 20px 0 10px;
+      }
+      p {
+        margin-bottom: 10px;
+      }
+      ul,
+      ol {
+        margin: 10px 0 10px 18px;
+      }
+      li {
+        margin-bottom: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .princ-card {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: 0.15s;
+      }
+      .princ-card:hover {
+        border-color: var(--g);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      .princ-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--g);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .princ-card h4 {
+        font-size: 14px;
+        margin: 0 0 6px;
+      }
+      .princ-card p {
+        font-size: 13px;
+        color: var(--t2);
+        margin: 0 0 8px;
+        line-height: 1.5;
+      }
+      .princ-demo {
+        font-size: 12px;
+        color: var(--t2);
+        background: var(--bg);
+        border-radius: var(--r);
+        padding: 10px 12px;
+        font-family: "JetBrains Mono", monospace;
+        line-height: 1.4;
+        margin-top: 8px;
+      }
+      .princ-demo strong {
+        color: var(--t);
+      }
+
+      .swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+        margin: 12px 0;
+      }
+      .swatch {
+        border-radius: var(--r);
+        overflow: hidden;
+        border: 1px solid var(--b);
+        transition: 0.15s;
+        cursor: pointer;
+      }
+      .swatch:hover {
+        transform: translateY(-2px);
+      }
+      .swatch-c {
+        height: 60px;
+        display: flex;
+        align-items: flex-end;
+        padding: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .swatch-i {
+        padding: 8px;
+        background: var(--w);
+      }
+      .swatch-n {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .swatch-tk {
+        font-size: 10px;
+        color: var(--tm);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .type-demo {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 0;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      .type-row {
+        display: flex;
+        border-bottom: 1px solid var(--bl);
+      }
+      .type-row:last-child {
+        border-bottom: none;
+      }
+      .type-label {
+        width: 180px;
+        padding: 16px;
+        background: var(--bg);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--tm);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .type-label span {
+        font-size: 10px;
+        color: var(--tm);
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .type-render {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .lh-compare {
+        display: flex;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .lh-col {
+        flex: 1;
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--r);
+        padding: 16px;
+        position: relative;
+      }
+      .lh-col .lh-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--bl);
+      }
+      .lh-col.cramped .lh-label {
+        color: #dc2626;
+      }
+      .lh-col.comfortable .lh-label {
+        color: var(--g);
+      }
+      .lh-col.generous .lh-label {
+        color: #3b82f6;
+      }
+
+      .voice-good {
+        border-left: 3px solid var(--g);
+        background: rgba(22, 163, 74, 0.04);
+        padding: 12px 14px;
+        border-radius: 0 var(--r) var(--r) 0;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      .voice-bad {
+        border-left: 3px solid #dc2626;
+        background: rgba(220, 38, 38, 0.03);
+        padding: 12px 14px;
+        border-radius: 0 var(--r) var(--r) 0;
+        margin-bottom: 8px;
+        font-size: 13px;
+        text-decoration: line-through;
+        color: var(--t2);
+      }
+      .voice-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+      .voice-good .voice-label {
+        color: var(--g);
+      }
+      .voice-bad .voice-label {
+        color: #dc2626;
+      }
+
+      .editor-demo {
+        background: var(--bg);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .editor-demo-header {
+        height: 36px;
+        background: var(--w);
+        border-bottom: 1px solid var(--b);
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 12px;
+        color: var(--tm);
+        justify-content: space-between;
+      }
+      .editor-demo-body {
+        display: flex;
+        min-height: 200px;
+      }
+      .editor-input {
+        flex: 1;
+        padding: 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        line-height: 1.7;
+        border: none;
+        border-right: 1px solid var(--bl);
+        resize: vertical;
+        outline: none;
+        background: var(--w);
+        color: var(--t);
+        min-height: 200px;
+      }
+      .editor-preview {
+        flex: 1;
+        padding: 16px;
+        background: var(--w);
+        overflow-y: auto;
+        min-height: 200px;
+      }
+      .editor-preview h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .editor-preview h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .editor-preview h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        margin-top: 0;
+      }
+      .editor-preview ul,
+      .editor-preview ol {
+        margin: 8px 0 8px 18px;
+      }
+      .editor-preview code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        background: var(--bg);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .editor-preview em {
+        color: var(--t2);
+      }
+      .editor-preview strong {
+        font-weight: 700;
+      }
+      .editor-preview a {
+        color: var(--g);
+        text-decoration: underline;
+      }
+
+      .sync-ind {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 3px 8px;
+        border-radius: 20px;
+        background: var(--bg);
+      }
+      .sync-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .sync-dot.green {
+        background: var(--g);
+      }
+      .sync-dot.amber {
+        background: #f59e0b;
+      }
+      .sync-dot.blue {
+        background: #3b82f6;
+      }
+      .sync-dot.red {
+        background: #dc2626;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 14px;
+        border-radius: var(--r);
+        font-size: 13px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        transition: 0.15s;
+      }
+      .btn-primary {
+        background: var(--g);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: var(--gd);
+      }
+      .btn-secondary {
+        background: var(--bg);
+        color: var(--t);
+        border: 1px solid var(--b);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--t2);
+      }
+      .btn-ghost:hover {
+        background: var(--bg);
+        color: var(--t);
+      }
+      .btn-destructive {
+        background: #dc2626;
+        color: white;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: var(--bg);
+        border-radius: var(--r);
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+      .step-num {
+        width: 22px;
+        height: 22px;
+        background: var(--g);
+        color: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .flow-arrow {
+        text-align: center;
+        color: var(--tm);
+        font-size: 14px;
+        margin: 2px 0;
+      }
+
+      .risk-card {
+        border-left: 3px solid #dc2626;
+        padding: 14px 16px;
+        background: var(--w);
+        border-radius: 0 var(--r) var(--r) 0;
+        margin-bottom: 12px;
+        border-top: 1px solid var(--bl);
+        border-right: 1px solid var(--bl);
+        border-bottom: 1px solid var(--bl);
+      }
+      .risk-card h4 {
+        font-size: 14px;
+        margin: 0 0 4px;
+        color: #dc2626;
+      }
+      .risk-card p {
+        font-size: 13px;
+        color: var(--t2);
+        margin: 0;
+      }
+      .risk-sev {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 8px;
+      }
+      .risk-sev.critical {
+        background: #dc2626;
+        color: white;
+      }
+      .risk-sev.high {
+        background: rgba(220, 38, 38, 0.15);
+        color: #dc2626;
+      }
+      .risk-sev.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #b45309;
+      }
+
+      .decision-card {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 18px;
+        margin-bottom: 14px;
+      }
+      .decision-card h4 {
+        font-size: 14px;
+        margin: 0 0 6px;
+      }
+      .decision-meta {
+        font-size: 11px;
+        color: var(--tm);
+        margin-bottom: 8px;
+      }
+      .decision-versus {
+        display: flex;
+        gap: 12px;
+        margin: 10px 0;
+      }
+      .decision-opt {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--r);
+        font-size: 12px;
+      }
+      .decision-opt.won {
+        background: rgba(22, 163, 74, 0.06);
+        border: 1px solid var(--g);
+      }
+      .decision-opt.lost {
+        background: var(--bg);
+        border: 1px solid var(--bl);
+        opacity: 0.6;
+      }
+      .decision-opt .opt-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+      .decision-opt.won .opt-label {
+        color: var(--g);
+      }
+      .decision-opt.lost .opt-label {
+        color: var(--tm);
+      }
+
+      .phase-card {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 18px;
+        margin-bottom: 10px;
+      }
+      .phase-hd {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .phase-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+      }
+      .phase-hd .p1 {
+        background: var(--g);
+      }
+      .phase-hd .p2 {
+        background: #2563eb;
+      }
+      .phase-hd .p3 {
+        background: #f59e0b;
+      }
+      .phase-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .phase-meta {
+        font-size: 11px;
+        color: var(--tm);
+      }
+      .phase-card ul {
+        margin: 0 0 0 16px;
+        font-size: 13px;
+        color: var(--t2);
+      }
+      .phase-card li {
+        margin-bottom: 3px;
+      }
+
+      .archetype-card {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+      }
+      .archetype-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .archetype-card.primary::before {
+        background: var(--g);
+      }
+      .archetype-card.secondary::before {
+        background: #2563eb;
+      }
+      .archetype-card.tertiary::before {
+        background: #f59e0b;
+      }
+      .archetype-card .ab {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: inline-block;
+      }
+      .archetype-card.primary .ab {
+        color: var(--g);
+      }
+      .archetype-card.secondary .ab {
+        color: #2563eb;
+      }
+      .archetype-card.tertiary .ab {
+        color: #f59e0b;
+      }
+      .archetype-card h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 8px;
+      }
+      .archetype-card .quote {
+        font-style: italic;
+        color: var(--t2);
+        border-left: 3px solid var(--b);
+        padding-left: 10px;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+      .archetype-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      .archetype-meta dt {
+        color: var(--tm);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+      .archetype-meta dd {
+        font-weight: 500;
+      }
+
+      .metric-row {
+        display: flex;
+        gap: 12px;
+        margin: 14px 0;
+      }
+      .metric-card {
+        flex: 1;
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--r);
+        padding: 14px;
+        text-align: center;
+      }
+      .metric-val {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--g);
+      }
+      .metric-label {
+        font-size: 11px;
+        color: var(--tm);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+
+      .summary-hero {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 32px;
+        margin-bottom: 20px;
+      }
+      .summary-hero h2 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .summary-hero p {
+        font-size: 15px;
+        color: var(--t2);
+        line-height: 1.6;
+        max-width: 650px;
+      }
+      .summary-stats {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+      }
+      .summary-stat {
+        text-align: center;
+      }
+      .summary-stat .val {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--g);
+      }
+      .summary-stat .lbl {
+        font-size: 11px;
+        color: var(--tm);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-weight: 600;
+      }
+
+      .share-bar {
+        background: var(--w);
+        border: 1px solid var(--b);
+        border-radius: var(--rl);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 40px;
+      }
+      .share-bar .copy-btn {
+        background: var(--g);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--r);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: 0.15s;
+      }
+      .share-bar .copy-btn:hover {
+        background: var(--gd);
+      }
+      .share-bar .url-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--b);
+        border-radius: var(--r);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--t2);
+        background: var(--bg);
+      }
+
+      .checklist {
+        list-style: none;
+      }
+      .checklist li {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--bl);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 13px;
+      }
+      .checklist li:last-child {
+        border-bottom: none;
+      }
+      .ck {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        border: 2px solid var(--g);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .ck.done {
+        background: var(--g);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <nav class="sidebar" id="sidebar">
+        <div class="sb-brand">
+          <h1><span class="dot"></span> OpenNotes</h1>
+          <p>Design System v2 · Last updated May 19</p>
+        </div>
+        <div class="nav-sec">
+          <div class="nav-sec-t">Decide</div>
+          <a class="nav-link active" data-section="summary"
+            ><span class="num">00</span> Executive Summary</a
+          >
+          <a class="nav-link" data-section="build"
+            ><span class="num">01</span> Start Building</a
+          >
+          <a class="nav-link" data-section="decisions"
+            ><span class="num">02</span> Decision Log</a
+          >
+          <a class="nav-link" data-section="risks"
+            ><span class="num">03</span> Risk Register</a
+          >
+        </div>
+        <div class="nav-sec">
+          <div class="nav-sec-t">Structure</div>
+          <a class="nav-link" data-section="ia"
+            ><span class="num">04</span> Information Architecture</a
+          >
+        </div>
+        <div class="nav-sec">
+          <div class="nav-sec-t">Understand</div>
+          <a class="nav-link" data-section="research"
+            ><span class="num">05</span> Research & Users</a
+          >
+          <a class="nav-link" data-section="principles"
+            ><span class="num">06</span> Design Principles</a
+          >
+          <a class="nav-link" data-section="visual"
+            ><span class="num">07</span> Visual Language</a
+          >
+          <a class="nav-link" data-section="voice"
+            ><span class="num">08</span> Voice & Tone</a
+          >
+        </div>
+        <div class="nav-sec">
+          <div class="nav-sec-t">Build</div>
+          <a class="nav-link" data-section="components"
+            ><span class="num">09</span> Components & Editor</a
+          >
+          <a class="nav-link" data-section="ship"
+            ><span class="num">10</span> Ship & QA</a
+          >
+        </div>
+      </nav>
+
+      <main class="main" id="main">
+        <!-- ====== 00 EXECUTIVE SUMMARY ====== -->
+        <section class="section active" id="summary">
+          <div class="summary-hero">
+            <h2>
+              OpenNotes gives writers the best markdown writing surface on the
+              web — beautiful, offline-first, and connected to storage you
+              already own.
+            </h2>
+            <p>
+              No new accounts. No new platforms. Just a clean editor and your
+              files exactly where you want them. Built for the Focused Writer:
+              open the app, write, leave. Zero friction between intent and text.
+            </p>
+            <div class="summary-stats">
+              <div class="summary-stat">
+                <div class="val">#16a34a</div>
+                <div class="lbl">Brand Color</div>
+              </div>
+              <div class="summary-stat">
+                <div class="val">9</div>
+                <div class="lbl">Components</div>
+              </div>
+              <div class="summary-stat">
+                <div class="val">8</div>
+                <div class="lbl">Principles</div>
+              </div>
+              <div class="summary-stat">
+                <div class="val">3</div>
+                <div class="lbl">Phases</div>
+              </div>
+              <div class="summary-stat">
+                <div class="val">10</div>
+                <div class="lbl">User Stories</div>
+              </div>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <div class="card-title">
+                <span class="icon">?</span> The Core Bet
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Writers want a beautiful editor where their files live in their
+                own storage — not a new cloud account, not a proprietary format.
+                <strong>No competitor nails both.</strong> Obsidian has
+                ownership but feels technical. Bear has beauty but Apple-only.
+                Notion has power but owns your data.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                <span class="icon">&rarr;</span> Phase 1 Ships
+              </div>
+              <ul
+                style="
+                  font-size: 13px;
+                  color: var(--t2);
+                  margin: 0;
+                  padding-left: 16px;
+                "
+              >
+                <li>CodeMirror 6 + live markdown rendering</li>
+                <li>IndexedDB local storage (zero data loss)</li>
+                <li>File sidebar, Cmd+K command palette</li>
+                <li>Wikilinks with autocomplete</li>
+                <li>Zen mode, dark/light themes, PWA</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="icon">!</span> What You Need To Know In 2 Minutes
+            </div>
+            <div class="grid3" style="margin-top: 12px">
+              <div>
+                <div
+                  style="
+                    font-weight: 700;
+                    font-size: 12px;
+                    color: var(--g);
+                    margin-bottom: 6px;
+                  "
+                >
+                  Who it's for
+                </div>
+                <p style="font-size: 13px; color: var(--t2); margin: 0">
+                  The Focused Writer — opens app, writes, leaves. 30 min – 2 hr
+                  sessions. Low tolerance for UI noise. Existing tools: Apple
+                  Notes, iA Writer, Bear.
+                </p>
+              </div>
+              <div>
+                <div
+                  style="
+                    font-weight: 700;
+                    font-size: 12px;
+                    color: var(--g);
+                    margin-bottom: 6px;
+                  "
+                >
+                  Differentiation
+                </div>
+                <p style="font-size: 13px; color: var(--t2); margin: 0">
+                  Beautiful editor + data ownership. Files are plain .md, stored
+                  in your GitHub/Dropbox/local — never on our servers. No
+                  signup. No account.
+                </p>
+              </div>
+              <div>
+                <div
+                  style="
+                    font-weight: 700;
+                    font-size: 12px;
+                    color: var(--g);
+                    margin-bottom: 6px;
+                  "
+                >
+                  Biggest risk
+                </div>
+                <p style="font-size: 13px; color: var(--t2); margin: 0">
+                  Focused Writer archetype may be wrong about toolbar tolerance
+                  — users might actually want visible formatting tools. Ready to
+                  pivot if data shows drop-off.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="share-bar">
+            <span
+              style="
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--t);
+                margin-right: auto;
+              "
+              >Share this design system</span
+            >
+            <input
+              class="url-input"
+              value="file://docs/design/index.html"
+              id="shareUrl"
+              readonly
+            />
+            <button
+              class="copy-btn"
+              onclick="
+                navigator.clipboard.writeText(
+                  document.getElementById('shareUrl').value
+                )
+                this.textContent = 'Copied!'
+                setTimeout(() => (this.textContent = 'Copy Link'), 2000)
+              "
+            >
+              Copy Link
+            </button>
+          </div>
+        </section>
+
+        <!-- ====== 01 START BUILDING ====== -->
+        <section class="section" id="build">
+          <div class="sec-hd">
+            <div class="tag">Decide</div>
+            <h2>Start Building</h2>
+            <p>
+              What ships, who owns what, and the non-negotiables. If you're
+              implementing, start here.
+            </p>
+          </div>
+          <div class="warn">
+            <strong>Reading guide:</strong> If you're an engineer building
+            OpenNotes, read this section. The rest explains <em>why</em> these
+            decisions were made — useful for context, not required for
+            implementation.
+          </div>
+          <h3>Phase 1: Ships Now</h3>
+          <div class="card">
+            <ul class="checklist">
+              <li>
+                <span class="ck done">&#10003;</span> CodeMirror 6 editor with
+                live markdown rendering
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> IndexedDB local storage
+                (Dexie.js — every keystroke persists)
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> File sidebar with create,
+                rename, delete, navigate
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Cmd+K command palette with
+                fuzzy file search
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Wikilinks (<code
+                  class="hl"
+                  >[[</code
+                >) with autocomplete
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Zen mode toggle
+                (Cmd+Shift+Z, 300ms spring)
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Landing page with
+                narrative arc (Hook > Tension > Turn > Proof > Climax)
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> PWA installable, theme
+                toggle (light/dark)
+              </li>
+            </ul>
+          </div>
+          <h3>Design-Engineering Contract</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>What</th>
+                <th>Design Owns</th>
+                <th>Engineering Owns</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Visual specs</td>
+                <td>Color tokens, type scale, spacing, radius</td>
+                <td>CSS performance, rendering optimization</td>
+              </tr>
+              <tr>
+                <td>Component behavior</td>
+                <td>Interaction specs, animation curves, states</td>
+                <td>React implementation, event handling</td>
+              </tr>
+              <tr>
+                <td>Content</td>
+                <td>All UI copy, error messages, labels, tooltips</td>
+                <td>Content rendering, truncation, overflow</td>
+              </tr>
+              <tr>
+                <td>Accessibility</td>
+                <td>Tab order, ARIA roles, landmark structure</td>
+                <td>Focus management code, platform behavior</td>
+              </tr>
+              <tr>
+                <td>Testing</td>
+                <td>Acceptance criteria, visual QA</td>
+                <td>Unit tests, integration tests, E2E</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="note">
+            <strong>Negotiable:</strong> Animation timing (±50ms), edge-case
+            overflow layout, responsive breakpoints (±20px).<br /><strong
+              >Non-negotiable:</strong
+            >
+            Color tokens (CSS variables only), type scale, component copy, focus
+            behavior, touch targets &ge;44&times;44px.
+          </div>
+          <h3>Launch Criteria</h3>
+          <div class="card">
+            <div class="grid2">
+              <div>
+                <div
+                  style="
+                    font-weight: 700;
+                    font-size: 12px;
+                    margin-bottom: 8px;
+                    color: var(--t);
+                  "
+                >
+                  Must Pass
+                </div>
+                <ul style="font-size: 13px; color: var(--t2); margin: 0">
+                  <li>
+                    Architecture: <code class="hl">core/</code> has 0 React
+                    imports
+                  </li>
+                  <li>Storage: CRUD files in IndexedDB</li>
+                  <li>Editor: CodeMirror 6 renders markdown live</li>
+                  <li>Offline: works in airplane mode</li>
+                  <li>Type safety: 100% TS, no <code class="hl">any</code></li>
+                  <li>Accessibility: AA contrast, keyboard navigable</li>
+                  <li>Landing: &lt;2s load on 3G</li>
+                </ul>
+              </div>
+              <div>
+                <div
+                  style="
+                    font-weight: 700;
+                    font-size: 12px;
+                    margin-bottom: 8px;
+                    color: var(--t);
+                  "
+                >
+                  Design Consistency
+                </div>
+                <ul style="font-size: 13px; color: var(--t2); margin: 0">
+                  <li>All type uses design tokens</li>
+                  <li>All colors use CSS variables (no inline hex)</li>
+                  <li>All animations respect prefers-reduced-motion</li>
+                  <li>Every string follows voice guide</li>
+                  <li>No broken empty states anywhere</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <h3>Phase 2 & 3</h3>
+          <div class="phase-card">
+            <div class="phase-hd">
+              <span class="phase-num p2">2</span>
+              <div>
+                <div class="phase-title">After Validation (> 100 DAU)</div>
+                <div class="phase-meta">
+                  GitHub OAuth, Dropbox sync, conflict resolution, nested
+                  folders
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phase-card">
+            <div class="phase-hd">
+              <span class="phase-num p3">3</span>
+              <div>
+                <div class="phase-title">Exploratory (> 1000 DAU)</div>
+                <div class="phase-meta">
+                  Graph view, backlinks, tags/frontmatter, custom providers,
+                  Tauri desktop app
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====== 02 DECISION LOG ====== -->
+        <section class="section" id="decisions">
+          <div class="sec-hd">
+            <div class="tag">Decide</div>
+            <h2>Decision Log</h2>
+            <p>
+              Arguments we actually had. The ones that hurt. Raw, unpolished.
+            </p>
+          </div>
+          <div class="decision-card">
+            <h4>#1: Toolbar vs. No Toolbar</h4>
+            <div class="decision-meta">
+              Debated for: 3 hours across 2 sessions · Resolution: 70/30 split
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin-bottom: 10px">
+              Should we have a visible formatting toolbar like Notion/Google
+              Docs, or go full iA Writer with tools summoned on demand?
+            </p>
+            <div class="decision-versus">
+              <div class="decision-opt won">
+                <div class="opt-label">WON: No visible toolbar</div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  Tools appear only on slash menu and Cmd+K. The page stays
+                  clean. Primary archetype says "I don't want to think about the
+                  editor."
+                </div>
+              </div>
+              <div class="decision-opt lost">
+                <div class="opt-label">LOST: Visible formatting toolbar</div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  New users discover features faster. Notion set the standard.
+                  But: every visible chrome element competes against the writing
+                  surface.
+                </div>
+              </div>
+            </div>
+            <div class="warn" style="margin-top: 10px">
+              <strong>Risk we accepted:</strong> New users won't discover
+              formatting features. We're betting that what they don't discover,
+              they don't need. If user testing shows confusion, we'll add a
+              contextual hint on slash.
+            </div>
+          </div>
+          <div class="decision-card">
+            <h4>#2: No Signup Ever vs. Optional Account</h4>
+            <div class="decision-meta">
+              Debated for: 2 hours · Resolution: Unanimous after user research
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin-bottom: 10px">
+              Should we have an optional account for cross-device preferences?
+              Product people wanted growth loops. Design and engineering pushed
+              back.
+            </p>
+            <div class="decision-versus">
+              <div class="decision-opt won">
+                <div class="opt-label">
+                  WON: No signup. No email. No account. Period.
+                </div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  Files live in user's own storage. We never hold data. Radical
+                  trust is the differentiator. 6/8 users interviewed said they'd
+                  trust a tool more if it didn't ask for anything.
+                </div>
+              </div>
+              <div class="decision-opt lost">
+                <div class="opt-label">
+                  LOST: Optional account for sync preferences
+                </div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  Would enable cross-device settings sync and give us a growth
+                  channel. But: any account creates the perception that we're
+                  holding something. Breaks the core promise.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="decision-card">
+            <h4>#3: Single File at a Time vs. Tabs</h4>
+            <div class="decision-meta">
+              Debated for: 90 minutes · Resolution: Close (55/45)
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin-bottom: 10px">
+              Multiple files open simultaneously like a code editor, or single
+              file like Notion? This was the closest call.
+            </p>
+            <div class="decision-versus">
+              <div class="decision-opt won">
+                <div class="opt-label">
+                  WON: Single active file (like Notion)
+                </div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  One note at a time = one thought at a time. Tabs encourage
+                  context switching, which breaks flow. Cmd+K for rapid
+                  switching is the compromise.
+                </div>
+              </div>
+              <div class="decision-opt lost">
+                <div class="opt-label">LOST: Multiple tabs (like VS Code)</div>
+                <div style="font-size: 12px; color: var(--t2)">
+                  Power users want to reference one note while writing another.
+                  This was the single most requested feature from Obsidian users
+                  during research.
+                </div>
+              </div>
+            </div>
+            <div class="warn" style="margin-top: 10px">
+              <strong>Revisit at > 1000 DAU:</strong> If power users
+              consistently request tabs and we have evidence it doesn't degrade
+              the writing experience for primary archetype, we'll add them.
+            </div>
+          </div>
+        </section>
+
+        <!-- ====== 03 RISK REGISTER ====== -->
+        <section class="section" id="risks">
+          <div class="sec-hd">
+            <div class="tag">Decide</div>
+            <h2>Risk Register</h2>
+            <p>
+              What kills the product if wrong. No hedging. These are the
+              assumptions that keep us up at night.
+            </p>
+          </div>
+          <div class="risk-card">
+            <h4>
+              The Focused Writer archetype is wrong about toolbar tolerance
+              <span class="risk-sev critical">CRITICAL</span>
+            </h4>
+            <p>
+              If users actually want visible formatting tools (like Notion's
+              slash menu or Google Docs' toolbar), our "no visible chrome" bet
+              creates confusion, not calm. <strong>Signal:</strong> > 20% of
+              users asking "how do I make text bold?" in feedback.
+              <strong>Fallback:</strong> Add contextual formatting bar on text
+              selection — keep it hidden until needed.
+            </p>
+          </div>
+          <div class="risk-card">
+            <h4>
+              Green (#16a34a) reduces trust
+              <span class="risk-sev high">HIGH</span>
+            </h4>
+            <p>
+              Users associate blue with tech credibility and green with
+              finance/gaming. If A/B testing shows higher bounce on green vs.
+              blue landing page, we have a brand perception problem.
+              <strong>Signal:</strong> User testing comments about the color
+              feeling "wrong" or "not serious." <strong>Fallback:</strong> Shift
+              to muted sage green or deep navy blue.
+            </p>
+          </div>
+          <div class="risk-card">
+            <h4>
+              Data ownership matters less than we think
+              <span class="risk-sev high">HIGH</span>
+            </h4>
+            <p>
+              Our core differentiator is "files in your own storage." If most
+              users don't actually care where their files live (they just want
+              sync to work), we're competing on a weaker axis. 6/8 interviewees
+              cared, but that's a small sample. <strong>Signal:</strong> Low
+              engagement with storage provider picker, high bounce at connection
+              step. <strong>Fallback:</strong> Make local storage the default
+              path (no setup required) and treat GitHub/Dropbox as power-user
+              features.
+            </p>
+          </div>
+          <div class="risk-card">
+            <h4>
+              Markdown syntax remains a blocker despite live rendering
+              <span class="risk-sev medium">MEDIUM</span>
+            </h4>
+            <p>
+              Live rendering (type <code class="hl"># Header</code> -> see
+              header) is our answer to markdown anxiety. But some users may
+              still find the raw syntax jarring. <strong>Signal:</strong> Slash
+              menu usage > 60% of formatting actions (indicating users avoid raw
+              syntax). <strong>Fallback:</strong> Consider WYSIWYG mode as
+              toggle — rendered-only view with formatting buttons. Tradeoff:
+              adds UI chrome, violates principle #1.
+            </p>
+          </div>
+          <div class="risk-card">
+            <h4>
+              Offline-first architecture is harder than estimated
+              <span class="risk-sev medium">MEDIUM</span>
+            </h4>
+            <p>
+              Conflict resolution is the hard part, not sync. If our conflict
+              modal frustrates users (confusing options, data loss), trust
+              erodes fast. <strong>Signal:</strong> > 5% of sync operations
+              result in unresolved conflicts.
+              <strong>Fallback:</strong> Auto-merge with granular version
+              history (like Google Docs). Tradeoff: significantly more complex,
+              may delay Phase 2.
+            </p>
+          </div>
+        </section>
+
+        <!-- ====== 04 INFORMATION ARCHITECTURE ====== -->
+        <section class="section section-full" id="ia">
+          <div class="sec-hd">
+            <div class="tag">Structure</div>
+            <h2>Information Architecture</h2>
+            <p>
+              How the app is laid out. What an engineer actually implements.
+            </p>
+          </div>
+          <div class="card" style="overflow-x: auto; padding: 0">
+            <svg
+              viewBox="0 0 1400 720"
+              style="width: 100%; display: block; min-height: 65vh"
+            >
+              <rect width="1400" height="720" fill="var(--bg)" rx="12" />
+              <rect
+                x="620"
+                y="20"
+                width="160"
+                height="32"
+                rx="16"
+                fill="rgba(34,197,94,0.12)"
+                stroke="var(--g)"
+                stroke-width="1.5"
+              />
+              <text
+                x="700"
+                y="42"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--gd)"
+              >
+                / (Editor Screen)
+              </text>
+              <rect
+                x="60"
+                y="72"
+                width="280"
+                height="320"
+                rx="10"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+              />
+              <rect
+                x="60"
+                y="72"
+                width="280"
+                height="40"
+                rx="10"
+                fill="var(--bl)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+              />
+              <text
+                x="200"
+                y="98"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Sidebar
+              </text>
+              <text
+                x="200"
+                y="130"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                240px · Left · Collapsible
+              </text>
+              <rect
+                x="80"
+                y="155"
+                width="240"
+                height="36"
+                rx="6"
+                fill="rgba(22,163,74,0.04)"
+                stroke="none"
+              />
+              <text
+                x="200"
+                y="178"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                notes.md
+              </text>
+              <rect
+                x="80"
+                y="200"
+                width="240"
+                height="36"
+                rx="6"
+                fill="rgba(22,163,74,0.04)"
+                stroke="none"
+              />
+              <text
+                x="200"
+                y="223"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                ideas.md
+              </text>
+              <rect
+                x="80"
+                y="260"
+                width="240"
+                height="42"
+                rx="8"
+                fill="rgba(22,163,74,0.06)"
+                stroke="var(--g)"
+                stroke-width="1.5"
+              />
+              <text
+                x="200"
+                y="286"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="12"
+                font-weight="600"
+                fill="var(--gd)"
+              >
+                + New File
+              </text>
+              <rect
+                x="360"
+                y="72"
+                width="520"
+                height="44"
+                rx="10"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+              />
+              <text
+                x="380"
+                y="100"
+                font-family="sans-serif"
+                font-size="13"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Title Bar
+              </text>
+              <text
+                x="580"
+                y="100"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                design-principles.md
+              </text>
+              <circle cx="800" cy="94" r="5" fill="var(--g)" />
+              <text
+                x="815"
+                y="100"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                Synced
+              </text>
+              <rect
+                x="360"
+                y="126"
+                width="520"
+                height="266"
+                rx="10"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+              />
+              <text
+                x="620"
+                y="190"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="18"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Editor Pane
+              </text>
+              <text
+                x="620"
+                y="225"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="13"
+                fill="var(--tm)"
+              >
+                720px max-width · flex-1 · 32px padding
+              </text>
+              <text
+                x="620"
+                y="260"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                CodeMirror 6 · Live markdown rendering
+              </text>
+              <text
+                x="620"
+                y="300"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--g)"
+              >
+                [[wikilinks]] · /slash menu · Cmd+K
+              </text>
+              <rect
+                x="420"
+                y="160"
+                width="400"
+                height="200"
+                rx="12"
+                fill="rgba(255,255,255,0.82)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="6,4"
+              />
+              <rect
+                x="445"
+                y="185"
+                width="350"
+                height="36"
+                rx="8"
+                fill="var(--bg)"
+                stroke="var(--b)"
+                stroke-width="1"
+              />
+              <text
+                x="465"
+                y="208"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                Search files...
+              </text>
+              <text
+                x="620"
+                y="310"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Cmd+K Command Palette
+              </text>
+              <text
+                x="620"
+                y="335"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                Overlay · Fuzzy search · Esc to close
+              </text>
+              <rect
+                x="500"
+                y="240"
+                width="240"
+                height="110"
+                rx="10"
+                fill="rgba(255,255,255,0.82)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="6,4"
+              />
+              <text
+                x="620"
+                y="275"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="13"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Modals
+              </text>
+              <text
+                x="620"
+                y="300"
+                text-anchor="middle"
+                font-family="monospace"
+                font-size="11"
+                fill="var(--tm)"
+              >
+                Provider · Repo · Dropbox · Conflict
+              </text>
+              <rect
+                x="920"
+                y="72"
+                width="420"
+                height="260"
+                rx="10"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="6,4"
+              />
+              <rect
+                x="920"
+                y="72"
+                width="420"
+                height="40"
+                rx="10"
+                fill="var(--bl)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="6,4"
+              />
+              <text
+                x="1130"
+                y="98"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--tm)"
+              >
+                /landing
+              </text>
+              <text
+                x="1130"
+                y="150"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="13"
+                fill="var(--tm)"
+              >
+                Separate Route
+              </text>
+              <text
+                x="1130"
+                y="182"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                Marketing page
+              </text>
+              <text
+                x="1130"
+                y="210"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                No editor chrome
+              </text>
+              <text
+                x="1130"
+                y="238"
+                text-anchor="middle"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--tm)"
+              >
+                Hero + 4 acts + CTA
+              </text>
+              <line
+                x1="800"
+                y1="36"
+                x2="920"
+                y2="36"
+                stroke="var(--b)"
+                stroke-width="2"
+                stroke-dasharray="6,4"
+              />
+              <line
+                x1="920"
+                y1="36"
+                x2="920"
+                y2="72"
+                stroke="var(--b)"
+                stroke-width="2"
+                stroke-dasharray="6,4"
+              />
+              <rect
+                x="60"
+                y="420"
+                width="1280"
+                height="260"
+                rx="12"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1"
+              />
+              <text
+                x="90"
+                y="460"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Legend
+              </text>
+              <rect
+                x="90"
+                y="480"
+                width="16"
+                height="16"
+                rx="4"
+                fill="var(--w)"
+                stroke="var(--g)"
+                stroke-width="2"
+              />
+              <text
+                x="118"
+                y="493"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                Primary surface — built on every load
+              </text>
+              <rect
+                x="90"
+                y="510"
+                width="16"
+                height="16"
+                rx="4"
+                fill="rgba(22,163,74,0.04)"
+                stroke="var(--b)"
+                stroke-width="1"
+              />
+              <text
+                x="118"
+                y="523"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                Sub-component — rendered within parent
+              </text>
+              <rect
+                x="90"
+                y="540"
+                width="16"
+                height="16"
+                rx="4"
+                fill="rgba(255,255,255,0.82)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="4,2"
+              />
+              <text
+                x="118"
+                y="553"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                Overlay / Modal — summoned on demand
+              </text>
+              <rect
+                x="90"
+                y="570"
+                width="16"
+                height="16"
+                rx="4"
+                fill="var(--w)"
+                stroke="var(--b)"
+                stroke-width="1.5"
+                stroke-dasharray="4,2"
+              />
+              <text
+                x="118"
+                y="583"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                Separate route — distinct page
+              </text>
+              <text
+                x="520"
+                y="460"
+                font-family="sans-serif"
+                font-size="14"
+                font-weight="700"
+                fill="var(--t)"
+              >
+                Layout Specs
+              </text>
+              <rect
+                x="520"
+                y="480"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--g)"
+              />
+              <text
+                x="536"
+                y="493"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--t)">Sidebar:</tspan>
+                240px fixed, collapsible to 0 via toggle
+              </text>
+              <rect
+                x="520"
+                y="510"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--g)"
+              />
+              <text
+                x="536"
+                y="523"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--t)">Editor:</tspan>
+                flex-1, content max-width 720px, 32px horizontal padding
+              </text>
+              <rect
+                x="520"
+                y="540"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--g)"
+              />
+              <text
+                x="536"
+                y="553"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--t)">Title bar:</tspan>
+                40px fixed top, filename + sync + zen toggle
+              </text>
+              <rect
+                x="520"
+                y="570"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--g)"
+              />
+              <text
+                x="536"
+                y="583"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--t)">Cmd+K:</tspan>
+                Centered overlay modal, autofocus input, fuzzy file search, Esc
+                to close
+              </text>
+              <rect
+                x="520"
+                y="600"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--g)"
+              />
+              <text
+                x="536"
+                y="613"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--t)">Modals:</tspan>
+                4 dialogs — Provider picker, Repo picker, Dropbox folder,
+                Conflict resolution
+              </text>
+              <rect
+                x="900"
+                y="480"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--b)"
+              />
+              <text
+                x="916"
+                y="493"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--tm)">Breakpoints:</tspan>
+                1024+ (sidebar visible) · 768-1023 (collapsed) · &lt;768 (sheet
+                overlay)
+              </text>
+              <rect
+                x="900"
+                y="510"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--b)"
+              />
+              <text
+                x="916"
+                y="523"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--tm)">/landing:</tspan>
+                Separate route, no shared chrome, marketing narrative (Hook →
+                Proof → CTA)
+              </text>
+              <rect
+                x="900"
+                y="540"
+                width="5"
+                height="14"
+                rx="3"
+                fill="var(--b)"
+              />
+              <text
+                x="916"
+                y="553"
+                font-family="sans-serif"
+                font-size="12"
+                fill="var(--t2)"
+              >
+                <tspan font-weight="600" fill="var(--tm)">Sync:</tspan>
+                Background process, invisible when idle
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ====== 05 RESEARCH & USERS ====== -->
+        <section class="section" id="research">
+          <div class="sec-hd">
+            <div class="tag">Understand</div>
+            <h2>Research & Users</h2>
+            <p>
+              Who we build for, what they need, and where competitors fall
+              short.
+            </p>
+          </div>
+          <h3>Archetypes</h3>
+          <div class="grid3">
+            <div class="archetype-card primary">
+              <span class="ab">Primary</span>
+              <h4>The Focused Writer</h4>
+              <p style="font-size: 13px; color: var(--t2); margin-bottom: 8px">
+                Opens the app, writes, leaves. Wants zero friction between open
+                and type.
+              </p>
+              <div class="quote">
+                "I don't want to think about the editor. I want to think about
+                what I'm writing."
+              </div>
+              <div class="archetype-meta">
+                <div>
+                  <dt>Context</dt>
+                  <dd>Desktop, 30 min – 2 hr</dd>
+                </div>
+                <div>
+                  <dt>Tolerance</dt>
+                  <dd>Low — will abandon</dd>
+                </div>
+                <div>
+                  <dt>Frustration</dt>
+                  <dd>Clutter, slow sync, data loss</dd>
+                </div>
+                <div>
+                  <dt>Primary Job</dt>
+                  <dd>Enter flow state</dd>
+                </div>
+              </div>
+            </div>
+            <div class="archetype-card secondary">
+              <span class="ab">Secondary</span>
+              <h4>The Knowledge Gardener</h4>
+              <p style="font-size: 13px; color: var(--t2); margin-bottom: 8px">
+                Builds a network of linked notes over months. Reviews,
+                refactors, connects.
+              </p>
+              <div class="quote">
+                "My notes are my second brain. I need to trust that the
+                connections won't break."
+              </div>
+              <div class="archetype-meta">
+                <div>
+                  <dt>Context</dt>
+                  <dd>Daily brief, weekly deep</dd>
+                </div>
+                <div>
+                  <dt>Tolerance</dt>
+                  <dd>Medium — invests time</dd>
+                </div>
+                <div>
+                  <dt>Frustration</dt>
+                  <dd>Broken links, orphaned notes</dd>
+                </div>
+                <div>
+                  <dt>Primary Job</dt>
+                  <dd>Grow knowledge base</dd>
+                </div>
+              </div>
+            </div>
+            <div class="archetype-card tertiary">
+              <span class="ab">Tertiary</span>
+              <h4>Capture-and-Sync</h4>
+              <p style="font-size: 13px; color: var(--t2); margin-bottom: 8px">
+                Quick notes on phone, expand on laptop. Expects latest version
+                everywhere.
+              </p>
+              <div class="quote">
+                "I type on the bus, finish at my desk. If sync isn't instant, I
+                lose the thread."
+              </div>
+              <div class="archetype-meta">
+                <div>
+                  <dt>Context</dt>
+                  <dd>Mobile + desktop, multiple/day</dd>
+                </div>
+                <div>
+                  <dt>Tolerance</dt>
+                  <dd>Low for sync failures</dd>
+                </div>
+                <div>
+                  <dt>Frustration</dt>
+                  <dd>Version conflicts, stale content</dd>
+                </div>
+                <div>
+                  <dt>Primary Job</dt>
+                  <dd>Seamless cross-device sync</dd>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="note" style="margin-top: 16px">
+            <strong>Conflict resolution:</strong> Every design conflict resolves
+            in favor of the Focused Writer. The Gardener and Capture-and-Sync
+            user benefit from the same infrastructure (wikilinks, sync engine)
+            but must not compromise the core writing experience.
+          </div>
+          <h3>User Stories</h3>
+          <div class="card">
+            <div
+              style="
+                font-weight: 700;
+                font-size: 12px;
+                color: var(--g);
+                margin-bottom: 4px;
+              "
+            >
+              US-1: First Visit
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin: 0 0 10px">
+              As a first-time visitor, I want to start writing within 3 seconds
+              of opening the app.
+            </p>
+            <div class="flow-step">
+              <span class="step-num">1</span> Land on opennotes.app → see empty
+              canvas
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">2</span> Press <kbd>Cmd</kbd>+<kbd>N</kbd>
+              → "Untitled.md" appears, cursor blinks
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">3</span> Type immediately. Every keystroke
+              saves silently.
+            </div>
+          </div>
+          <div class="card">
+            <div
+              style="
+                font-weight: 700;
+                font-size: 12px;
+                color: var(--g);
+                margin-bottom: 4px;
+              "
+            >
+              US-5: Linking Notes
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin: 0 0 10px">
+              As a knowledge gardener, I want to link between notes so my ideas
+              connect.
+            </p>
+            <div class="flow-step">
+              <span class="step-num">1</span> Typing in "design-systems.md"
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">2</span> Type
+              <code class="hl">See also [[col</code> → autocomplete shows
+              "colors.md"
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">3</span> Select →
+              <code class="hl">[[colors.md]]</code> inserted, renders green and
+              clickable
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">4</span> Click link → navigates to
+              colors.md. Back via Cmd+K.
+            </div>
+          </div>
+          <div class="card">
+            <div
+              style="
+                font-weight: 700;
+                font-size: 12px;
+                color: var(--g);
+                margin-bottom: 4px;
+              "
+            >
+              US-6: Zen Mode
+            </div>
+            <p style="font-size: 13px; color: var(--t2); margin: 0 0 10px">
+              As a deep thinker, I want to hide all chrome and just write.
+            </p>
+            <div class="flow-step">
+              <span class="step-num">1</span> Writing. Sidebar and title bar
+              visible.
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">2</span>
+              <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> → chrome fades out
+              over 300ms spring
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">3</span> Only the text remains. Centered.
+              Calm. Write for 45 minutes.
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step">
+              <span class="step-num">4</span> Press <kbd>Escape</kbd> → chrome
+              fades back. Cursor never moved.
+            </div>
+          </div>
+          <h3>Jobs to Be Done</h3>
+          <div class="card">
+            <div
+              style="
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--bl);
+              "
+            >
+              <div style="font-weight: 700; font-size: 14px">
+                When I have a fleeting thought
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 4px 0 0">
+                I want to capture it instantly in a trusted place, so it doesn't
+                disappear before I can develop it.
+              </p>
+            </div>
+            <div
+              style="
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--bl);
+              "
+            >
+              <div style="font-weight: 700; font-size: 14px">
+                When I'm in a writing flow
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 4px 0 0">
+                I want everything else to disappear, so I can think clearly
+                without interface noise.
+              </p>
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 14px">
+                When I'm organizing thoughts across notes
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 4px 0 0">
+                I want to connect them naturally, so my notes become a web of
+                knowledge, not isolated files.
+              </p>
+            </div>
+          </div>
+          <h3>Competitive Landscape</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Competitor</th>
+                <th>Focus</th>
+                <th>Ownership</th>
+                <th>Beauty</th>
+                <th>Our Advantage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Notion</td>
+                <td><span class="badge badge-r">2/5</span></td>
+                <td><span class="badge badge-r">2/5</span></td>
+                <td><span class="badge badge-g">4/5</span></td>
+                <td>We're cleaner, you own your data</td>
+              </tr>
+              <tr>
+                <td>Obsidian</td>
+                <td><span class="badge badge-g">4/5</span></td>
+                <td><span class="badge badge-g">5/5</span></td>
+                <td><span class="badge badge-a">3/5</span></td>
+                <td>We're beautiful, same ownership model</td>
+              </tr>
+              <tr>
+                <td>Bear</td>
+                <td><span class="badge badge-g">5/5</span></td>
+                <td><span class="badge badge-r">2/5</span></td>
+                <td><span class="badge badge-g">5/5</span></td>
+                <td>Cross-platform, same beauty</td>
+              </tr>
+              <tr>
+                <td>iA Writer</td>
+                <td><span class="badge badge-g">5/5</span></td>
+                <td><span class="badge badge-a">3/5</span></td>
+                <td><span class="badge badge-g">4/5</span></td>
+                <td>Cross-platform, wikilinks, free</td>
+              </tr>
+              <tr>
+                <td>Apple Notes</td>
+                <td><span class="badge badge-g">4/5</span></td>
+                <td><span class="badge badge-r">1/5</span></td>
+                <td><span class="badge badge-g">3/5</span></td>
+                <td>Data ownership, markdown power</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="note">
+            No competitor nails both "beautiful writing environment" AND "data
+            ownership." That's the gap. Obsidian has ownership but is technical.
+            Bear has beauty but Apple-only. We build Bear-for-everyone with
+            Obsidian ownership.
+          </div>
+        </section>
+
+        <!-- ====== 06 DESIGN PRINCIPLES ====== -->
+        <section class="section" id="principles">
+          <div class="sec-hd">
+            <div class="tag">Understand</div>
+            <h2>Design Principles</h2>
+            <p>
+              The decision filter. When in doubt, these resolve conflicts. Each
+              one makes an explicit tradeoff.
+            </p>
+          </div>
+          <div class="grid2">
+            <div class="princ-card">
+              <div class="princ-num">01</div>
+              <h4>The editor is the product</h4>
+              <p>
+                Every feature competes for pixels against the text area. The
+                text area always wins.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> Rich features lose to focused
+                writing.<br /><strong>Source:</strong> Primary archetype — "I
+                don't want to think about the editor."<br /><strong
+                  >Test:</strong
+                >
+                Squint at the screen. If text area isn't >60% of visual weight,
+                we failed.
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">02</div>
+              <h4>Data belongs to the user</h4>
+              <p>
+                Files live in storage the user already controls. We never hold
+                data on our servers.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> No "sign in with OpenNotes." No
+                managed cloud. No collaboration.<br /><strong>Source:</strong>
+                6/8 interviewees — "Ownership anxiety trumps latency
+                anxiety."<br /><strong>Test:</strong> Can you take your files
+                and leave in 30 seconds with zero data loss?
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">03</div>
+              <h4>Sync is invisible until it needs attention</h4>
+              <p>
+                Sync happens in the background. Green when fine. Amber when
+                pending. Present when at risk.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> No per-file badges, no sync history
+                view. We choose calm.<br /><strong>Source:</strong> "Users only
+                think about sync when it fails."<br /><strong>Test:</strong>
+                Does the user notice sync at all during a normal writing
+                session?
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">04</div>
+              <h4>Markdown rendered live, syntax transparent</h4>
+              <p>
+                Type <code class="hl"># Header</code> and see a header. The
+                rendered result is the default view.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> WYSIWYG vs source mode. We show
+                rendered by default.<br /><strong>Source:</strong> Research —
+                "Markdown is a power user's comfort language, a regular user's
+                blocker."<br /><strong>Test:</strong> Can a non-technical user
+                format text without knowing markdown? (slash menu)
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">05</div>
+              <h4>Files are flat by default, organized by name</h4>
+              <p>
+                No workspaces. No drag-and-drop folders. Grouping via
+                <code class="hl">/</code> in filenames.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> Deep hierarchies help large
+                collections. We choose simplicity.<br /><strong>Source:</strong>
+                "Users think 'I want ideas.md' — not 'navigate to folder then
+                ideas.'"<br /><strong>Test:</strong> Can you find any file in
+                &lt; 3 keystrokes via Cmd+K?
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">06</div>
+              <h4>Every keystroke is safe</h4>
+              <p>
+                Content saves to IndexedDB on every change. Close tab, crash
+                browser, lose power — words are there.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> No "discard changes" flow. Every edit
+                is committed. Undo is your discard.<br /><strong
+                  >Source:</strong
+                >
+                The Focused Writer's core fear — losing work mid-flow.<br /><strong
+                  >Test:</strong
+                >
+                Kill the browser process mid-sentence. Reopen. Same content,
+                same cursor.
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">07</div>
+              <h4>Beautiful by subtraction, not addition</h4>
+              <p>
+                Polish means removing. Everything that can be hidden is hidden
+                by default or one click away.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> Discoverability loses to clarity.
+                Hidden features might be missed.<br /><strong>Source:</strong>
+                "The first 3 seconds determine the writing session."<br /><strong
+                  >Test:</strong
+                >
+                Count UI elements visible on load. We're trying to get below 12.
+              </div>
+            </div>
+            <div class="princ-card">
+              <div class="princ-num">08</div>
+              <h4>Open by default, portable forever</h4>
+              <p>
+                Every file is a <code class="hl">.md</code> file. No proprietary
+                format. No export step. Already portable.
+              </p>
+              <div class="princ-demo">
+                <strong>Tradeoff:</strong> No databases, kanban boards, computed
+                tables. Those lock you in.<br /><strong>Source:</strong> Data
+                portability — portable data is owned data.<br /><strong
+                  >Test:</strong
+                >
+                Open a file in VS Code. Same content, fully functional. If not,
+                we added cruft.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====== 07 VISUAL LANGUAGE ====== -->
+        <section class="section" id="visual">
+          <div class="sec-hd">
+            <div class="tag">Understand</div>
+            <h2>Visual Language</h2>
+            <p>
+              Color, typography, spacing. Don't read about the decisions — see
+              them.
+            </p>
+          </div>
+          <h3>Color Palette</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-c" style="background: #fff; color: #525252">
+                #FFFFFF
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Background</div>
+                <div class="swatch-tk">bg</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #fafafa; color: #525252">
+                #FAFAFA
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Surface</div>
+                <div class="swatch-tk">surface</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #f5f5f4; color: #525252">
+                #F5F5F4
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Secondary</div>
+                <div class="swatch-tk">secondary</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #16a34a; color: white">
+                #16A34A
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Primary</div>
+                <div class="swatch-tk">primary</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #15803d; color: white">
+                #15803D
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Primary Dark</div>
+                <div class="swatch-tk">primary-dark</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #0f0f0f; color: #a3a3a3">
+                #0F0F0F
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Foreground</div>
+                <div class="swatch-tk">foreground</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #525252; color: #d4d4d4">
+                #525252
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Muted Text</div>
+                <div class="swatch-tk">muted-foreground</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #e5e5e5; color: #525252">
+                #E5E5E5
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Border</div>
+                <div class="swatch-tk">border</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #dc2626; color: white">
+                #DC2626
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Destructive</div>
+                <div class="swatch-tk">destructive</div>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-c" style="background: #1a1a1a; color: #a3a3a3">
+                #1A1A1A
+              </div>
+              <div class="swatch-i">
+                <div class="swatch-n">Dark BG</div>
+                <div class="swatch-tk">dark:bg</div>
+              </div>
+            </div>
+          </div>
+          <h3>Typography: See the difference</h3>
+          <div class="type-demo">
+            <div class="type-row">
+              <div class="type-label">
+                Display<br /><span>40px / 1.2 / 600</span>
+              </div>
+              <div
+                class="type-render"
+                style="
+                  font-size: 40px;
+                  font-weight: 600;
+                  line-height: 1.2;
+                  letter-spacing: -0.5px;
+                "
+              >
+                Your notes. Your storage.
+              </div>
+            </div>
+            <div class="type-row">
+              <div class="type-label">
+                Heading 1<br /><span>28px / 1.3 / 600</span>
+              </div>
+              <div
+                class="type-render"
+                style="font-size: 28px; font-weight: 600; line-height: 1.3"
+              >
+                Design Principles
+              </div>
+            </div>
+            <div class="type-row">
+              <div class="type-label">
+                Heading 2<br /><span>22px / 1.3 / 600</span>
+              </div>
+              <div
+                class="type-render"
+                style="font-size: 22px; font-weight: 600; line-height: 1.3"
+              >
+                Information Architecture
+              </div>
+            </div>
+            <div class="type-row">
+              <div class="type-label">
+                Body<br /><span>16px / 1.7 / 400</span>
+              </div>
+              <div
+                class="type-render"
+                style="font-size: 16px; line-height: 1.7"
+              >
+                The editor is the product. We invest in the writing experience
+                above all else. Every feature competes for pixels against the
+                text area. The text area always wins. This is what your words
+                look like at the default reading size with generous line
+                spacing.
+              </div>
+            </div>
+            <div class="type-row">
+              <div class="type-label">
+                Caption<br /><span>13px / 1.5 / 400</span>
+              </div>
+              <div
+                class="type-render"
+                style="font-size: 13px; line-height: 1.5; color: var(--t2)"
+              >
+                notes.md · 2 min ago · 1.2 KB · Synced
+              </div>
+            </div>
+          </div>
+          <h3>Line Height: This is the actual design decision</h3>
+          <p style="font-size: 13px; color: var(--t2); margin-bottom: 14px">
+            The difference between 1.5 and 1.7 is the difference between "I'm
+            reading" and "I'm writing." Writers need breathing room. Readers
+            need density. We chose for writers.
+          </p>
+          <div class="lh-compare">
+            <div class="lh-col cramped">
+              <div class="lh-label">1.5 — Cramped</div>
+              <div style="font-size: 14px; line-height: 1.5; color: var(--t2)">
+                The editor is the product. We invest in the writing experience
+                above all else. Every feature competes for pixels against the
+                text area. The text area always wins. Files live in storage the
+                user already controls. We never hold data on our servers.
+              </div>
+            </div>
+            <div class="lh-col comfortable">
+              <div class="lh-label">1.7 — OpenNotes (Shipping)</div>
+              <div style="font-size: 14px; line-height: 1.7; color: var(--t2)">
+                The editor is the product. We invest in the writing experience
+                above all else. Every feature competes for pixels against the
+                text area. The text area always wins. Files live in storage the
+                user already controls. We never hold data on our servers.
+              </div>
+            </div>
+            <div class="lh-col generous">
+              <div class="lh-label">2.0 — Too Airy</div>
+              <div style="font-size: 14px; line-height: 2; color: var(--t2)">
+                The editor is the product. We invest in the writing experience
+                above all else. Every feature competes for pixels against the
+                text area. The text area always wins. Files live in storage the
+                user already controls. We never hold data on our servers.
+              </div>
+            </div>
+          </div>
+          <h3>Contrast Ratios</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Combination</th>
+                <th>Ratio</th>
+                <th>WCAG</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Foreground (#0F0F0F) on Background (#FFF)</td>
+                <td><strong>16.2:1</strong></td>
+                <td><span class="badge badge-g">AAA</span></td>
+              </tr>
+              <tr>
+                <td>White on Primary (#16a34a) at 14px semibold</td>
+                <td><strong>4.6:1</strong></td>
+                <td><span class="badge badge-g">AA</span></td>
+              </tr>
+              <tr>
+                <td>Green link (#16a34a) on White at 13px</td>
+                <td><strong>4.6:1</strong></td>
+                <td><span class="badge badge-g">AA</span></td>
+              </tr>
+              <tr>
+                <td>Muted (#737373) on Background at 13px</td>
+                <td><strong>4.5:1</strong></td>
+                <td><span class="badge badge-a">AA (borderline)</span></td>
+              </tr>
+              <tr>
+                <td>Destructive (#DC2626) on White</td>
+                <td><strong>5.8:1</strong></td>
+                <td><span class="badge badge-g">AA</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ====== 08 VOICE & TONE ====== -->
+        <section class="section" id="voice">
+          <div class="sec-hd">
+            <div class="tag">Understand</div>
+            <h2>Voice & Tone</h2>
+            <p>
+              How OpenNotes speaks. Quiet, direct, confident, clean. The
+              difference is what the user feels.
+            </p>
+          </div>
+          <h3>The Four Voice Adjectives</h3>
+          <div class="grid2">
+            <div class="card">
+              <div class="card-title"><span class="icon">Q</span> Quiet</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Interface doesn't shout. Labels are short. Errors are calm.
+                Success doesn't celebrate.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">D</span> Direct</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                No fluff. No "please." No "oops!" Say what happened and what to
+                do.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                <span class="icon">C</span> Confident
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                The product knows what it is. No hedging. No "We recommend..."
+                Just factual.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">C</span> Clean</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Every word earns its place. If a sentence can be three words,
+                it's three words.
+              </p>
+            </div>
+          </div>
+          <h3>Real Product Copy</h3>
+          <div class="voice-good">
+            <div class="voice-label">Sync status</div>
+            <strong>"Synced"</strong> — One word. Calm. The user isn't thinking
+            about sync. Neither is the interface.
+          </div>
+          <div class="voice-good">
+            <div class="voice-label">Conflict resolution</div>
+            <strong
+              >"This file changed on both devices. Pick which version to
+              keep."</strong
+            >
+            — Explains what happened. Gives clear action. Doesn't blame the
+            user.
+          </div>
+          <div class="voice-good">
+            <div class="voice-label">Empty sidebar</div>
+            <strong>"No files yet"</strong> — Honest + inviting. Not a void. Not
+            a celebration.
+          </div>
+          <div class="voice-bad">
+            <div class="voice-label">Infantilizing (rejected)</div>
+            "Oops! Something went wrong." — The product didn't trip. An error
+            occurred.
+          </div>
+          <div class="voice-bad">
+            <div class="voice-label">Performative politeness (rejected)</div>
+            "Congratulations! You've created your first file." — Creating a file
+            is not an achievement.
+          </div>
+          <div class="voice-bad">
+            <div class="voice-label">Celebrating the routine (rejected)</div>
+            "Your changes have been saved successfully!" — "Saved" is enough. No
+            exclamation points for routine operations.
+          </div>
+          <h3>Button Copy Rules</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Instead of</th>
+                <th>Use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-decoration: line-through; color: var(--t2)">
+                  Submit / OK
+                </td>
+                <td>Create, Save, Delete, Sync now</td>
+              </tr>
+              <tr>
+                <td style="text-decoration: line-through; color: var(--t2)">
+                  Cancel
+                </td>
+                <td>Keep editing, or just the X icon</td>
+              </tr>
+              <tr>
+                <td style="text-decoration: line-through; color: var(--t2)">
+                  Continue
+                </td>
+                <td>Connect GitHub, Pick repo</td>
+              </tr>
+              <tr>
+                <td style="text-decoration: line-through; color: var(--t2)">
+                  Yes / No
+                </td>
+                <td>Delete / Keep</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ====== 09 COMPONENTS & EDITOR ====== -->
+        <section class="section" id="components">
+          <div class="sec-hd">
+            <div class="tag">Build</div>
+            <h2>Components & Editor</h2>
+            <p>
+              Buttons, sync states, empty states, and the writing surface
+              itself. Prove the "live markdown" principle by trying it.
+            </p>
+          </div>
+          <h3>Try It: Live Markdown Editor</h3>
+          <p style="font-size: 13px; color: var(--t2); margin-bottom: 8px">
+            Type markdown on the left. See it render on the right. This is
+            principle #4 in action.
+          </p>
+          <div class="editor-demo">
+            <div class="editor-demo-header">
+              <span>demo.md</span
+              ><span class="sync-ind"
+                ><span class="sync-dot green"></span> Synced</span
+              >
+            </div>
+            <div class="editor-demo-body">
+              <textarea
+                class="editor-input"
+                id="editorInput"
+                placeholder="Start typing markdown...&#10;&#10;# Try a heading&#10;**Bold text** and *italic text*&#10;&#10;- A bullet list&#10;- Another item&#10;&#10;> A blockquote&#10;&#10;`inline code` and [[wikilinks]]"
+              >
+# Welcome to OpenNotes
+
+**Live markdown rendering** — the principle in action.
+
+Type something on the left and watch it render on the right.
+
+## Try it:
+- Bullet lists render live
+- **Bold** and *italic* work
+- `code` displays in monospace
+- [[linked-notes]] show as green links
+
+> The editor is the product.</textarea
+              >
+              <div class="editor-preview" id="editorPreview"></div>
+            </div>
+          </div>
+          <h3>Buttons</h3>
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+              "
+            >
+              <button class="btn btn-primary">Primary</button>
+              <button class="btn btn-secondary">Secondary</button>
+              <button class="btn btn-ghost">Ghost</button>
+              <button class="btn btn-destructive">Delete</button>
+            </div>
+            <p style="font-size: 12px; color: var(--tm); margin: 0">
+              <code class="hl">h-9</code> (36px) ·
+              <code class="hl">px-4</code> (16px horizontal) · 14px / 500 ·
+              150ms ease-out
+            </p>
+          </div>
+          <h3>Sync Status Indicators</h3>
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+              "
+            >
+              <span class="sync-ind"
+                ><span class="sync-dot green"></span> Synced</span
+              >
+              <span class="sync-ind"
+                ><span class="sync-dot amber"></span> 2 unsaved</span
+              >
+              <span class="sync-ind"
+                ><span class="sync-dot blue"></span> Syncing…</span
+              >
+              <span class="sync-ind"
+                ><span class="sync-dot red"></span> Offline</span
+              >
+            </div>
+            <table class="tbl" style="margin: 0">
+              <thead>
+                <tr>
+                  <th>State</th>
+                  <th>Color</th>
+                  <th>When</th>
+                  <th>User action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge-g">Synced</span></td>
+                  <td>Green</td>
+                  <td>Local = Remote</td>
+                  <td>None — it's fine</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-a">Unsynced</span></td>
+                  <td>Amber</td>
+                  <td>Local ahead of remote</td>
+                  <td>Click to flush sync</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-b">Syncing</span></td>
+                  <td>Blue</td>
+                  <td>Sync in progress</td>
+                  <td>Wait (or continue writing)</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-r">Offline</span></td>
+                  <td>Red</td>
+                  <td>No connectivity</td>
+                  <td>Write locally, sync will retry</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Empty States</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Mood</th>
+                <th>Copy</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>No files (sidebar)</td>
+                <td>Inviting</td>
+                <td>"No files yet"</td>
+                <td>Green "+" button</td>
+              </tr>
+              <tr>
+                <td>New file (editor)</td>
+                <td>Anticipation</td>
+                <td>(none)</td>
+                <td>Blinking cursor on line 1</td>
+              </tr>
+              <tr>
+                <td>Search no results</td>
+                <td>Neutral</td>
+                <td>"No files found"</td>
+                <td>"Create {query}.md" suggestion</td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>Keyboard Shortcuts</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Shortcut</th>
+                <th>Action</th>
+                <th>Context</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><kbd>Cmd</kbd>+<kbd>K</kbd></td>
+                <td>Open command palette</td>
+                <td>Global</td>
+              </tr>
+              <tr>
+                <td><kbd>Cmd</kbd>+<kbd>S</kbd></td>
+                <td>Flush sync</td>
+                <td>Global</td>
+              </tr>
+              <tr>
+                <td><kbd>Cmd</kbd>+<kbd>N</kbd></td>
+                <td>Create new file</td>
+                <td>Global</td>
+              </tr>
+              <tr>
+                <td><kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td>
+                <td>Toggle zen mode</td>
+                <td>Global</td>
+              </tr>
+              <tr>
+                <td><kbd>Escape</kbd></td>
+                <td>Close modal / exit zen</td>
+                <td>Global</td>
+              </tr>
+              <tr>
+                <td><kbd>/</kbd> at line start</td>
+                <td>Open slash menu</td>
+                <td>Editor</td>
+              </tr>
+              <tr>
+                <td><kbd>[[</kbd></td>
+                <td>Start wikilink autocomplete</td>
+                <td>Editor</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ====== 10 SHIP & QA ====== -->
+        <section class="section" id="ship">
+          <div class="sec-hd">
+            <div class="tag">Build</div>
+            <h2>Ship & QA</h2>
+            <p>
+              Taste references, bravery budget, accessibility, and the quality
+              bar.
+            </p>
+          </div>
+          <h3>Taste References</h3>
+          <div class="grid2">
+            <div class="card">
+              <div class="card-title"><span class="icon">N</span> Notion</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Taking: Clean white aesthetic, Cmd+K palette, calm
+                composability.
+              </p>
+              <p style="font-size: 12px; color: #dc2626; margin: 4px 0 0">
+                Not taking: Block-based editor, proprietary format, managed
+                cloud.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">L</span> Linear</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Taking: Keyboard-first, dark mode, sync as background, green
+                accents.
+              </p>
+              <p style="font-size: 12px; color: #dc2626; margin: 4px 0 0">
+                Not taking: Issue tracking complexity, list-heavy UI.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">O</span> Obsidian</div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Taking: Wikilinks, local-first, markdown purity, file ownership.
+              </p>
+              <p style="font-size: 12px; color: #dc2626; margin: 4px 0 0">
+                Not taking: Plugin complexity, technical aesthetic.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                <span class="icon">i</span> iA Writer
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Taking: Focus mode, monospace writing, one-thing-well
+                philosophy.
+              </p>
+              <p style="font-size: 12px; color: #dc2626; margin: 4px 0 0">
+                Not taking: macOS only, no wikilinks, paid.
+              </p>
+            </div>
+          </div>
+          <h3>Bravery Budget</h3>
+          <div class="card">
+            <div
+              style="
+                margin-bottom: 14px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid var(--bl);
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--g);
+                    color: white;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                    font-weight: 700;
+                  "
+                  >1</span
+                ><strong>No toolbar. Just the editor.</strong>
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Tools appear only on demand. Risk: new users won't discover
+                features. Reward: focused writers stay in flow.
+              </p>
+            </div>
+            <div
+              style="
+                margin-bottom: 14px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid var(--bl);
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--g);
+                    color: white;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                    font-weight: 700;
+                  "
+                  >2</span
+                ><strong>No signup. No email. No account.</strong>
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Risk: no growth loop, no email capture. Reward: radical trust
+                becomes the differentiator.
+              </p>
+            </div>
+            <div>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin-bottom: 4px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--g);
+                    color: white;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                    font-weight: 700;
+                  "
+                  >3</span
+                ><strong>Green as the brand color. Not blue. Not gray.</strong>
+              </div>
+              <p style="font-size: 13px; color: var(--t2); margin: 0">
+                Risk: could feel "off" to users expecting blue = tech. Reward:
+                any screenshot is instantly recognizable as OpenNotes.
+              </p>
+            </div>
+          </div>
+          <h3>Accessibility Checklist</h3>
+          <div class="card">
+            <ul class="checklist">
+              <li>
+                <span class="ck done">&#10003;</span> Every text-background
+                combination meets AA contrast (verified at multiple font sizes)
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Keyboard navigation: every
+                interactive element reachable via Tab
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Screen reader: sidebar
+                announces as navigation, sync status as aria-live
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Focus management: modals
+                trap focus, return focus to trigger on close
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Motion: all animations
+                respect <code class="hl">prefers-reduced-motion</code>
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Touch targets: minimum
+                44&times;44px on all interactive elements
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> Color: never the sole
+                state indicator (sync, wikilinks, validation have icons + text)
+              </li>
+              <li>
+                <span class="ck done">&#10003;</span> 200% zoom: content
+                reflows, nothing hidden or truncated
+              </li>
+            </ul>
+          </div>
+          <h3>Error State Matrix</h3>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>What User Sees</th>
+                <th>Recovery</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-a">Offline + unsaved</span></td>
+                <td>Amber dot, "{n} unsaved"</td>
+                <td>Auto-retry when online</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-r">Sync conflict</span></td>
+                <td>Modal: both versions side by side</td>
+                <td>Pick resolution (keep mine/theirs/merge)</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-r">Broken wikilink</span></td>
+                <td>Red underline, tooltip "Not found"</td>
+                <td>Click to create new file or fix link</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-b">Empty editor</span></td>
+                <td>Blinking cursor on line 1</td>
+                <td>Start typing</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-g">First run</span></td>
+                <td>Empty state with CTA</td>
+                <td>Click "Create first file"</td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>Not-Candidates-Ever</h3>
+          <div class="card">
+            <ul style="font-size: 13px; color: var(--t2); margin: 0">
+              <li>
+                <strong>Collaboration / multi-user editing</strong> — requires
+                server, violates data ownership principle
+              </li>
+              <li>
+                <strong>Non-markdown file formats</strong> — violates
+                portability principle
+              </li>
+              <li>
+                <strong>AI features that read user content</strong> — violates
+                privacy. (Client-side AI may be reconsidered if it runs
+                locally.)
+              </li>
+              <li>
+                <strong>Subscription pricing</strong> — user owns storage, not
+                us
+              </li>
+            </ul>
+          </div>
+          <div class="share-bar">
+            <span
+              style="
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--t);
+                margin-right: auto;
+              "
+              >Share this design system</span
+            >
+            <input
+              class="url-input"
+              value="file://docs/design/index.html"
+              id="shareUrl2"
+              readonly
+            />
+            <button
+              class="copy-btn"
+              onclick="
+                navigator.clipboard.writeText(
+                  document.getElementById('shareUrl2').value
+                )
+                this.textContent = 'Copied!'
+                setTimeout(() => (this.textContent = 'Copy Link'), 2000)
+              "
+            >
+              Copy Link
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <button
+      id="themeToggle"
+      style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--w);
+        border: 1px solid var(--b);
+        cursor: pointer;
+        font-size: 16px;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: var(--t);
+      "
+      title="Toggle theme"
+    >
+      🌙
+    </button>
+
+    <script>
+      ;(function () {
+        var toggle = document.getElementById("themeToggle")
+        var html = document.documentElement
+        var saved = localStorage.getItem("theme")
+        if (
+          saved === "dark" ||
+          (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          html.setAttribute("data-theme", "dark")
+          toggle.textContent = "☀️"
+        }
+        toggle.addEventListener("click", function () {
+          var isDark = html.getAttribute("data-theme") === "dark"
+          if (isDark) {
+            html.removeAttribute("data-theme")
+            localStorage.setItem("theme", "light")
+            toggle.textContent = "🌙"
+          } else {
+            html.setAttribute("data-theme", "dark")
+            localStorage.setItem("theme", "dark")
+            toggle.textContent = "☀️"
+          }
+        })
+      })()
+
+      // Section nav
+      document.querySelectorAll(".nav-link").forEach(function (link) {
+        link.addEventListener("click", function () {
+          document.querySelectorAll(".nav-link").forEach(function (l) {
+            l.classList.remove("active")
+          })
+          link.classList.add("active")
+          document.querySelectorAll(".section").forEach(function (s) {
+            s.classList.remove("active")
+          })
+          document.getElementById(link.dataset.section).classList.add("active")
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        })
+      })
+
+      // Mobile toggle
+      document.getElementById("mobileToggle") &&
+        document
+          .getElementById("mobileToggle")
+          .addEventListener("click", function () {
+            var sb = document.getElementById("sidebar")
+            sb.style.display = sb.style.display === "block" ? "none" : "block"
+            if (sb.style.display === "block") {
+              sb.style.position = "fixed"
+              sb.style.top = "0"
+              sb.style.left = "0"
+              sb.style.width = "260px"
+              sb.style.height = "100vh"
+              sb.style.zIndex = "300"
+              sb.style.background = "var(--w)"
+            }
+          })
+
+      // Live markdown editor
+      ;(function () {
+        function renderMD(text) {
+          try {
+            var h = text
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+              .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+              .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+              .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+              .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+              .replace(/\*(.+?)\*/g, "<em>$1</em>")
+              .replace(/`([^`]+)`/g, "<code>$1</code>")
+              .replace(
+                /^&gt; (.+)$/gm,
+                '<blockquote style="border-left:3px solid #16a34a;padding-left:12px;margin:8px 0;color:#525252;font-style:italic">$1</blockquote>'
+              )
+              .replace(/^- (.+)$/gm, '<li style="margin-left:4px">$1</li>')
+              .replace(
+                /\[\[(.+?)\]\]/g,
+                '<a href="#" style="color:#16a34a;text-decoration:underline;cursor:pointer">[[$1]]</a>'
+              )
+              .replace(
+                /^(\d+)\. (.+)$/gm,
+                '<li style="margin-left:4px">$2</li>'
+              )
+              .replace(/\n\n/g, "<br><br>")
+            return (
+              '<div style="font-size:14px;line-height:1.7;color:#0f0f0f">' +
+              h +
+              "</div>"
+            )
+          } catch (e) {
+            return text
+          }
+        }
+        var inp = document.getElementById("editorInput")
+        var prev = document.getElementById("editorPreview")
+        if (inp && prev) {
+          prev.innerHTML = renderMD(inp.value)
+          inp.addEventListener("input", function () {
+            prev.innerHTML = renderMD(this.value)
+          })
+        }
+      })()
+    </script>
+  </body>
+</html>

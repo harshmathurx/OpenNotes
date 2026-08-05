@@ -2,7 +2,16 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { PanelLeft, Maximize2, Sun, Moon, Menu, Settings } from "lucide-react"
+import {
+  PanelLeft,
+  Maximize2,
+  Sun,
+  Moon,
+  Menu,
+  Settings,
+  Puzzle,
+  Sparkles,
+} from "lucide-react"
 import { useTheme } from "next-themes"
 
 interface TitleBarProps {
@@ -11,7 +20,10 @@ interface TitleBarProps {
   onToggleZen: () => void
   onRename: (newPath: string) => void
   onOpenSettings: () => void
+  onOpenExtensions?: () => void
+  onOpenAI?: () => void
   onToggleMobileSidebar?: () => void
+  homeActive?: boolean
   children?: React.ReactNode
 }
 
@@ -21,7 +33,10 @@ export function TitleBar({
   onToggleZen,
   onRename,
   onOpenSettings,
+  onOpenExtensions,
+  onOpenAI,
   onToggleMobileSidebar,
+  homeActive,
   children,
 }: TitleBarProps) {
   const [editing, setEditing] = useState(false)
@@ -77,7 +92,11 @@ export function TitleBar({
           </Button>
         )}
 
-        {editing ? (
+        {homeActive ? (
+          <span className="truncate text-sm text-muted-foreground">
+            Workspace
+          </span>
+        ) : editing ? (
           <input
             ref={inputRef}
             type="text"
@@ -103,6 +122,28 @@ export function TitleBar({
 
       <div className="flex shrink-0 items-center gap-1">
         {children}
+        {onOpenAI && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenAI}
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            title="AI Co-Writer settings"
+          >
+            <Sparkles className="h-4 w-4" />
+          </Button>
+        )}
+        {onOpenExtensions && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenExtensions}
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            title="Extensions"
+          >
+            <Puzzle className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

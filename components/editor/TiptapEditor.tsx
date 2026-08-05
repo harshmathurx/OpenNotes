@@ -1,13 +1,20 @@
 "use client"
 
-import { useEditor, EditorContent } from "@tiptap/react"
+import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import TaskList from "@tiptap/extension-task-list"
 import TaskItem from "@tiptap/extension-task-item"
 import Image from "@tiptap/extension-image"
-import { useEffect, useState, useRef, useCallback } from "react"
+import {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from "react"
 import { SlashCommand, slashCommandItems } from "./extensions/SlashCommand"
 import { Wikilink } from "./extensions/Wikilink"
 import {
@@ -17,6 +24,18 @@ import {
 import { SlashMenu } from "./SlashMenu"
 import { EditorBubbleMenu } from "./BubbleMenu"
 
+/** Imperative surface exposed to the host for extension/editor bridging. */
+export interface TiptapEditorHandle {
+  /** Insert markdown at the cursor (converted into the live document). */
+  insertMarkdown: (markdown: string) => void
+  /** The current text selection as plain text ("" when none). */
+  getSelection: () => string
+  /** Replace the current selection with markdown (or insert at cursor). */
+  replaceSelection: (markdown: string) => void
+  /** Replace the entire document with the given markdown. */
+  setMarkdown: (markdown: string) => void
+}
+
 interface TiptapEditorProps {
   docKey: string
   content: string
@@ -25,13 +44,11 @@ interface TiptapEditorProps {
   onNavigate?: (path: string) => void
 }
 
-export function TiptapEditor({
-  docKey,
-  content,
-  onChange,
-  onSave,
-  onNavigate,
-}: TiptapEditorProps) {
+/** Markdown is re-serialized from the doc at most this often while typing. */
+const EMIT_DEBOUNCE_MS = 300
+
+export const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
+  function TiptapEditor({ docKey, content, onChange, onSave, onNavigate }, ref) {
   const [slashMenuProps, setSlashMenuProps] = useState<{
     items: typeof slashCommandItems
     command: (item: (typeof slashCommandItems)[0]) => void
@@ -43,6 +60,54 @@ export function TiptapEditor({
   const selectedIndexRef = useRef(selectedSlashIndex)
   const lastEmittedMarkdownRef = useRef(content)
   const isApplyingExternalContentRef = useRef(false)
+  // Debounced onChange emit: keep the latest callbacks/editor in refs so the
+  // trailing-edge timer never goes stale without re-arming on every render.
+  const onChangeRef = useRef(onChange)
+  const emitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const editorRef = useRef<Editor | null>(null)
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  /** Serialize the live doc to markdown and push it upstream (latest wins). */
+  const emitMarkdownNow = useCallback(() => {
+    const ed = editorRef.current
+    if (!ed || ed.isDestroyed) return
+    const markdown = tiptapJSONToMarkdown(ed.getJSON())
+    if (markdown === lastEmittedMarkdownRef.current) return
+    lastEmittedMarkdownRef.current = markdown
+    onChangeRef.current(markdown)
+  }, [])
+
+  /**
+   * Trailing-edge debounce: the full getJSON + markdown conversion runs at
+   * most once per EMIT_DEBOUNCE_MS while typing instead of per keystroke.
+   * Persistence is debounced downstream by the vault save queue, so latency
+   * here is invisible to the user — the editor state itself is immediate.
+   */
+  const scheduleEmit = useCallback(() => {
+    if (emitTimerRef.current) clearTimeout(emitTimerRef.current)
+    emitTimerRef.current = setTimeout(() => {
+      emitTimerRef.current = null
+      emitMarkdownNow()
+    }, EMIT_DEBOUNCE_MS)
+  }, [emitMarkdownNow])
+
+  useEffect(() => {
+    return () => {
+      // Unmount (incl. note-switch remount via key): emit NOW so the queued
+      // save holds the very latest content before React swaps to the next
+      // note. The emit runs BEFORE the seed effect of the incoming content
+      // (that effect is declared after the content-sync effect below), so
+      // the outgoing note's markdown is safely captured in lastEmitted first.
+      if (emitTimerRef.current) {
+        clearTimeout(emitTimerRef.current)
+        emitTimerRef.current = null
+      }
+      emitMarkdownNow()
+    }
+  }, [emitMarkdownNow])
 
   useEffect(() => {
     slashMenuPropsRef.current = slashMenuProps
@@ -51,10 +116,6 @@ export function TiptapEditor({
   useEffect(() => {
     selectedIndexRef.current = selectedSlashIndex
   }, [selectedSlashIndex])
-
-  useEffect(() => {
-    lastEmittedMarkdownRef.current = content
-  }, [content, docKey])
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -168,11 +229,16 @@ export function TiptapEditor({
     ],
     content: markdownToTiptapJSON(content),
     onUpdate: ({ editor: ed }) => {
+      // The editor arrives via useSyncExternalStore: the onUpdate event can
+      // fire BEFORE the store notifies React (so `editor` is still null in
+      // the returned value). Keep the ref hot from the event payload itself
+      // so the debounced emit can always read the live doc.
+      editorRef.current = ed
+      // Cheap per keystroke: only schedule the (debounced) serialize+emit.
+      // External content swaps go through commands.setContent with
+      // emitUpdate:false, so anything reaching here is user input.
       if (isApplyingExternalContentRef.current) return
-      const json = ed.getJSON()
-      const markdown = tiptapJSONToMarkdown(json)
-      lastEmittedMarkdownRef.current = markdown
-      onChange(markdown)
+      scheduleEmit()
     },
     editorProps: {
       attributes: {
@@ -195,9 +261,35 @@ export function TiptapEditor({
     },
   })
 
-  // Sync external content changes
+  // The debounced emit reads through this so the trailing-edge timer never
+  // holds a stale editor instance. Assigned during render (not in an effect)
+  // so the ref is live the moment the editor exists — an effect would leave
+  // one commit where a just-fired keystroke's emit saw editorRef === null.
+  editorRef.current = editor
+  useEffect(() => {
+    return () => {
+      editorRef.current = null
+    }
+  }, [editor])
+
+  // Sync external content changes. Loop-proof by construction: onChange only
+  // ever emits exactly `lastEmittedMarkdownRef.current`, so a parent echo of
+  // our own emission early-returns here; a genuinely different external
+  // value lands with emitUpdate:false and can never schedule another emit.
   useEffect(() => {
     if (!editor) return
+    if (content === lastEmittedMarkdownRef.current) return
+
+    // A content change arrived while a debounced emit is pending: the
+    // pending emit holds newer text (typed a split second ago) than this
+    // incoming prop (the parent's pre-typing snapshot). Flush it first so
+    // lastEmitted captures the newest text, then only accept the external
+    // content when it genuinely differs from what the editor already shows.
+    if (emitTimerRef.current) {
+      clearTimeout(emitTimerRef.current)
+      emitTimerRef.current = null
+      emitMarkdownNow()
+    }
     if (content === lastEmittedMarkdownRef.current) return
 
     isApplyingExternalContentRef.current = true
@@ -209,7 +301,16 @@ export function TiptapEditor({
     queueMicrotask(() => {
       isApplyingExternalContentRef.current = false
     })
-  }, [content, editor])
+  }, [content, editor, emitMarkdownNow])
+
+  // Keep lastEmitted aligned with external content (note open, extension
+  // writes). Declared AFTER the content-sync effect: when content changes in
+  // the same commit the editor was replaced (note-switch), the sync effect
+  // has already applied the new doc, so seeding here can never overwrite a
+  // pending emit's newer markdown.
+  useEffect(() => {
+    lastEmittedMarkdownRef.current = content
+  }, [content, docKey])
 
   // Save shortcut
   useEffect(() => {
@@ -229,6 +330,57 @@ export function TiptapEditor({
       setSlashMenuProps(null)
     },
     [slashMenuProps]
+  )
+
+  // Expose an imperative bridge so extensions/host can insert markdown,
+  // read/replace the selection, and set the document content.
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertMarkdown(markdown: string) {
+        if (!editor) return
+        const json = markdownToTiptapJSON(markdown)
+        const nodes = json.type === "doc" ? (json.content ?? []) : [json]
+        editor
+          .chain()
+          .focus()
+          .insertContent(nodes as never)
+          .run()
+      },
+      getSelection() {
+        if (!editor) return ""
+        const { from, to } = editor.state.selection
+        return editor.state.doc.textBetween(from, to, " ")
+      },
+      replaceSelection(markdown: string) {
+        if (!editor) return
+        const json = markdownToTiptapJSON(markdown)
+        const nodes = json.type === "doc" ? (json.content ?? []) : [json]
+        const { from, to } = editor.state.selection
+        editor
+          .chain()
+          .focus()
+          .insertContentAt({ from, to }, nodes as never)
+          .run()
+      },
+      setMarkdown(markdown: string) {
+        if (!editor) return
+        // Cancel any pending debounced emit: this external value is newer.
+        if (emitTimerRef.current) {
+          clearTimeout(emitTimerRef.current)
+          emitTimerRef.current = null
+        }
+        isApplyingExternalContentRef.current = true
+        editor.commands.setContent(markdownToTiptapJSON(markdown), {
+          emitUpdate: false,
+        })
+        lastEmittedMarkdownRef.current = markdown
+        queueMicrotask(() => {
+          isApplyingExternalContentRef.current = false
+        })
+      },
+    }),
+    [editor]
   )
 
   if (!editor) {
@@ -256,4 +408,5 @@ export function TiptapEditor({
       <EditorBubbleMenu editor={editor} />
     </div>
   )
-}
+  }
+)

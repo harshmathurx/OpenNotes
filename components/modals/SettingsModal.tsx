@@ -8,7 +8,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { BadgeCheck, Cloud, CloudOff, GitBranch, HardDrive } from "lucide-react"
+import {
+  BadgeCheck,
+  Cloud,
+  CloudOff,
+  GitBranch,
+  HardDrive,
+  Puzzle,
+  Sparkles,
+} from "lucide-react"
 
 interface SettingsModalProps {
   open: boolean
@@ -21,6 +29,8 @@ interface SettingsModalProps {
   onOpenGitHub: () => void
   onUseLocal: () => void
   onSyncNow: () => void
+  onOpenExtensions?: () => void
+  onOpenAI?: () => void
 }
 
 export function SettingsModal({
@@ -34,6 +44,8 @@ export function SettingsModal({
   onOpenGitHub,
   onUseLocal,
   onSyncNow,
+  onOpenExtensions,
+  onOpenAI,
 }: SettingsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -85,7 +97,7 @@ export function SettingsModal({
                 <GitBranch className="h-4 w-4" />
                 <span className="text-left">
                   <span className="block text-sm">Sync to GitHub</span>
-                  <span className="block text-xs opacity-70">One repo = one vault</span>
+                  <span className="block text-xs opacity-70">One repo = one notes folder</span>
                 </span>
               </Button>
             </div>
@@ -118,6 +130,44 @@ export function SettingsModal({
               Sync now
             </Button>
           </section>
+
+          {(onOpenExtensions || onOpenAI) && (
+            <section className="rounded-lg border p-4">
+              <h3 className="mb-3 text-sm font-medium">Workspace</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {onOpenExtensions && (
+                  <Button
+                    variant="outline"
+                    className="h-auto justify-start gap-3 py-3"
+                    onClick={onOpenExtensions}
+                  >
+                    <Puzzle className="h-4 w-4" />
+                    <span className="text-left">
+                      <span className="block text-sm">Extensions</span>
+                      <span className="block text-xs opacity-70">
+                        Add capabilities
+                      </span>
+                    </span>
+                  </Button>
+                )}
+                {onOpenAI && (
+                  <Button
+                    variant="outline"
+                    className="h-auto justify-start gap-3 py-3"
+                    onClick={onOpenAI}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span className="text-left">
+                      <span className="block text-sm">AI Co-Writer</span>
+                      <span className="block text-xs opacity-70">
+                        Your key or local model
+                      </span>
+                    </span>
+                  </Button>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </DialogContent>
     </Dialog>

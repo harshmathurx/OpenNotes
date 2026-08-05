@@ -19,7 +19,7 @@ interface RepoPickerProps {
 export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
   const [token, setToken] = useState("")
   const [owner, setOwner] = useState("")
-  const [repo, setRepo] = useState("opennotes-vault")
+  const [repo, setRepo] = useState("opennotes")
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -73,7 +73,7 @@ export function RepoPicker({ open, onClose, onSelect }: RepoPickerProps) {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Repository name</label>
             <Input
-              placeholder="opennotes-vault"
+              placeholder="my-notes"
               value={repo}
               onChange={(e) => setRepo(e.target.value)}
             />

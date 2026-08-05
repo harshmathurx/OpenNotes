@@ -59,7 +59,7 @@ export function ProviderPicker({
             <div className="text-left">
               <div className="font-medium">GitHub</div>
               <div className="text-xs text-muted-foreground">
-                One repo = one vault. Free version history.
+                One repo = one notes folder. Free version history.
               </div>
             </div>
           </Button>

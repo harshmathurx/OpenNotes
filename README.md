@@ -1,51 +1,72 @@
 # OpenNotes
 
-OpenNotes is a beta, local-first markdown notebook for calm personal writing. It is built with Next.js and stores notes in your browser today, with remote storage work underway.
+**Your notes. Real files. Your storage. Your AI.**
+
+OpenNotes is a calm, open-source, local-first markdown workspace. Your notes stay plain `.md` files, sync runs through infrastructure you already own, and AI is opt-in on your own keys. No account, no backend, no telemetry.
+
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Local-first](https://img.shields.io/badge/made%20with-local--first-informational.svg)](https://www.inkandswitch.com/local-first/)
+[![Download](https://img.shields.io/github/v/release/harshmathurx/OpenNotes?include_prereleases&label=download)](https://github.com/harshmathurx/OpenNotes/releases)
+
+<!-- Hero image: screenshots/final-02-editor-content.png must exist in the repo (it is committed).
+     If a designed hero is added later at docs/design/hero.png, swap the src below. -->
+<img src="screenshots/final-02-editor-content.png" alt="OpenNotes editor with a markdown document open, showing the calm writing surface and sidebar" width="100%">
+
+## Download
+
+Get the OpenNotes Mac app (Apple Silicon or Intel) from the [Releases page](https://github.com/harshmathurx/OpenNotes/releases).
+
+**The web app** — you can also open OpenNotes in a browser. There is no hosted deployment yet: run it locally (see [Local development](#local-development) below) or self-host it from [this repo](https://github.com/harshmathurx/OpenNotes).
+
+The Mac app is not yet signed with an Apple certificate, so macOS will warn on first open — right-click → Open → Open to proceed. Signing is on the roadmap (see RELEASE.md).
+
+## Why OpenNotes
+
+Most note tools ask you to give up at least one of three things: your files, your sync, or your AI. OpenNotes is built on the position that you shouldn't have to give up any of them.
+
+- **Files** — notes are plain markdown. Obsidian gets this right but is closed source; Notion holds content on its servers.
+- **Sync** — git, through your own local git and credentials. No hosted sync service, no subscription.
+- **AI** — opt-in, on your own Anthropic/OpenAI key or a local Ollama model. Keys are encrypted on device and never touch a server.
+
+The bet: a small, excellent core plus a clean extension API beats a bloated app.
 
 ## What works now
 
-- Create, edit, rename, and delete markdown notes.
-- Local persistence through IndexedDB in the current browser profile.
-- A focused editor with markdown formatting, wikilinks, slash commands, command palette, mobile sidebar, and light/dark themes.
-- No OpenNotes account or OpenNotes server is required for the local workflow.
+- **Editor** — Tiptap live-markdown editing, slash menu, wikilinks, bubble menu, zen mode, command palette (`Cmd+K`), light/dark themes.
+- **Workspace Home** (`Cmd+Shift+H`) — daily journal, scratchpad, kanban, recent notes.
+- **Styling Studio** — font, size, leading, and canvas width, applied instantly and persisted locally.
+- **Local-first storage** — every keystroke lands in IndexedDB first; works offline; no account required.
+- **Extensions** — bundled: Templates, Export (md/html/zip), Backlinks, AI Co-Writer (opt-in, off by default), and Git Sync (Mac app).
 
-## Beta caveats
+## The Mac app
 
-OpenNotes is not production-ready remote-sync software yet. In this branch:
+The web app is the instant front door. The Mac app (`src-tauri`, Tauri v2) is the real home:
 
-- GitHub sync is a beta path for people comfortable granting a fine-grained token to one repo.
-- Dropbox sync is planned after the GitHub provider is proven end to end.
-- Browser-local storage can be cleared by private browsing modes, browser resets, storage pressure, or manual site-data deletion.
-- Export/backup and full PWA/offline installability are still roadmap items unless implemented in a later branch.
+- Real `.md` files in a notes folder you pick — grep them, back them up, open them in any editor.
+- **Git Sync** through your local git binary with your own SSH/agent credentials — VS Code-style sync, no tokens, we never see a secret.
+- AI keys and other secrets live in the macOS Keychain, not in browser storage.
 
-If your notes are important, keep an independent copy outside OpenNotes.
+The Mac app is in active development. The direction is set; expect rough edges.
+
+## Extensions
+
+The app ships minimal on purpose; capabilities are extensions. Each one is a plain TypeScript object (a manifest plus `activate(ctx)`) that registers commands, slash items, and panels — no `eval`, no remote code. Third-party developers build against the same stable contract the bundled extensions use. See [docs/extensions.md](docs/extensions.md).
 
 ## Where data lives
 
-Notes are saved as records in the browser's IndexedDB database for this app. The current implementation does not upload note content to an OpenNotes backend. Clearing site data for the app will remove the local vault from that browser profile.
+- **Notes**: IndexedDB in your browser profile on web; real files on disk in the Mac app. There is no OpenNotes backend — note content is never uploaded anywhere by us.
+- **AI keys**: encrypted on device (AES-GCM-256 via WebCrypto on web, Keychain on Mac), never in plaintext, never on a server.
+- **Telemetry**: none. Accounts: none. Token custody: none.
 
-## Connecting GitHub
-
-The current GitHub beta is intentionally no-backend: OpenNotes asks for a fine-grained GitHub token and stores it encrypted in this browser.
-
-Recommended token setup:
-
-1. Create the GitHub repo first, for example `opennotes-vault`.
-2. Create a fine-grained token at <https://github.com/settings/personal-access-tokens/new>.
-3. Set **Repository access** to only that repo.
-4. Set **Contents** permission to **Read and write**.
-5. Paste the token into OpenNotes Settings → Sync to GitHub.
-
-OpenNotes does not auto-create repos in the fine-grained token flow. If the repo is missing or the token was not granted access, connection fails with a clear error.
-
-OAuth "Sign in with GitHub" is the better production path, but it requires a tiny token-broker service because this app is currently a static export. That belongs after v2 is clean.
+Clearing browser site data removes locally stored notes from that profile — if your notes matter, keep them in a synced folder or an independent copy.
 
 ## Roadmap
 
-1. Harden the local-first note workflow and backup/export story.
-2. Wire GitHub sync end to end, including authentication, provider selection, sync status, and conflict handling.
-3. Add Dropbox only after the provider contract is reliable with GitHub.
-4. Revisit PWA/installability once real icon assets and offline behavior are in place.
+1. Mac app + git sync, hardened end to end.
+2. Community extension directory.
+3. Dropbox / folder-based storage providers.
+4. PWA polish and offline installability.
 
 ## Local development
 
@@ -55,7 +76,7 @@ pnpm install
 pnpm dev
 ```
 
-Then open http://localhost:3000.
+Then open http://localhost:3000. For the Mac app (once the Tauri toolchain is set up): `pnpm tauri:dev`.
 
 ## Validation commands
 
@@ -66,6 +87,10 @@ pnpm exec vitest run
 pnpm exec next build
 ```
 
+## Contributing
+
+Contributions welcome — extensions most of all. See [CONTRIBUTING.md](CONTRIBUTING.md); new extension ideas have their own friendly issue template ("Extension idea").
+
 ## License
 
-Apache-2.0
+[Apache-2.0](LICENSE)

@@ -7,10 +7,13 @@
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans:
-    "Inter", "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Charter", "Iowan Old Style", "New York", Georgia,
+    "Times New Roman", ui-serif, serif;
   --font-mono:
     "JetBrains Mono", "Fira Code", "Cascadia Code", "Geist Mono", ui-monospace,
-    monospace;
+    SFMono-Regular, Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -42,6 +45,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-link: var(--link);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -52,71 +56,75 @@
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: #ffffff;
+  --radius: 0.625rem;
+  --background: #fcfbfa;
   --foreground: #1c1917;
   --card: #ffffff;
   --card-foreground: #1c1917;
   --popover: #ffffff;
   --popover-foreground: #1c1917;
   --primary: #1c1917;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f4;
+  --primary-foreground: #fcfbfa;
+  --secondary: #f6f4f1;
   --secondary-foreground: #1c1917;
-  --muted: #f5f5f4;
+  --muted: #f6f4f1;
   --muted-foreground: #78716c;
-  --accent: #f5f5f4;
+  --accent: #f3f1ee;
   --accent-foreground: #1c1917;
   --destructive: #ef4444;
-  --border: #e7e5e4;
-  --input: #e7e5e4;
-  --ring: #16a34a;
+  --border: #e9e6e2;
+  --input: #e9e6e2;
+  --ring: #1c1917;
+  --link: #0f766e;
+  --selection: #e2d9ca;
   --chart-1: #16a34a;
   --chart-2: #0d9488;
   --chart-3: #6366f1;
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
-  --sidebar: #fafaf9;
+  --sidebar: #faf8f6;
   --sidebar-foreground: #1c1917;
   --sidebar-primary: #16a34a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f4;
+  --sidebar-accent: #f3f1ee;
   --sidebar-accent-foreground: #1c1917;
-  --sidebar-border: #e7e5e4;
+  --sidebar-border: #e9e6e2;
   --sidebar-ring: #16a34a;
 }
 
 .dark {
-  --background: #0c0a09;
-  --foreground: #fafaf9;
-  --card: #1c1917;
-  --card-foreground: #fafaf9;
-  --popover: #1c1917;
-  --popover-foreground: #fafaf9;
-  --primary: #fafaf9;
+  --background: #171513;
+  --foreground: #f5f3f0;
+  --card: #201d1b;
+  --card-foreground: #f5f3f0;
+  --popover: #201d1b;
+  --popover-foreground: #f5f3f0;
+  --primary: #f5f3f0;
   --primary-foreground: #1c1917;
-  --secondary: #292524;
-  --secondary-foreground: #fafaf9;
-  --muted: #292524;
+  --secondary: #2d2a27;
+  --secondary-foreground: #f5f3f0;
+  --muted: #2d2a27;
   --muted-foreground: #a8a29e;
-  --accent: #292524;
-  --accent-foreground: #fafaf9;
+  --accent: #2d2a27;
+  --accent-foreground: #f5f3f0;
   --destructive: #f87171;
-  --border: #292524;
-  --input: #292524;
-  --ring: #22c55e;
+  --border: #322f2c;
+  --input: #322f2c;
+  --ring: #a8a29e;
+  --link: #75c7b1;
+  --selection: #534532;
   --chart-1: #22c55e;
   --chart-2: #14b8a6;
   --chart-3: #818cf8;
   --chart-4: #fbbf24;
   --chart-5: #f87171;
-  --sidebar: #1c1917;
-  --sidebar-foreground: #fafaf9;
+  --sidebar: #1b1917;
+  --sidebar-foreground: #f5f3f0;
   --sidebar-primary: #22c55e;
   --sidebar-primary-foreground: #0c0a09;
-  --sidebar-accent: #292524;
-  --sidebar-accent-foreground: #fafaf9;
-  --sidebar-border: #292524;
+  --sidebar-accent: #2d2a27;
+  --sidebar-accent-foreground: #f5f3f0;
+  --sidebar-border: #322f2c;
   --sidebar-ring: #22c55e;
 }
 
@@ -124,182 +132,424 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent)
+      transparent;
   }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "cv11" 1,
+      "ss01" 1,
+      "liga" 1,
+      "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Calm cross-fade when the theme flips */
+  @media (prefers-reduced-motion: no-preference) {
+    body,
+    body *:not(script) {
+      transition-property: background-color, border-color;
+      transition-duration: 180ms;
+      transition-timing-function: ease-out;
+    }
+  }
+
+  /* Warm paper selection */
+  ::selection {
+    background: var(--selection);
+    color: var(--foreground);
+  }
+
+  /* Consistent, quiet focus rings */
+  :focus-visible {
+    outline: 2px solid
+      color-mix(in oklab, var(--primary) 40%, transparent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Slim, unobtrusive native scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent)
+      transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 16%, transparent);
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 30%, transparent);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Base UI scroll-area thumb — softer than raw --border */
+  [data-slot="scroll-area-thumb"] {
+    background: color-mix(in oklab, var(--foreground) 14%, transparent);
+  }
+  [data-slot="scroll-area-scrollbar"]:hover [data-slot="scroll-area-thumb"] {
+    background: color-mix(in oklab, var(--foreground) 26%, transparent);
+  }
+}
+
+/* ── Reading surface: prose polish (targets Tiptap's .prose root) ── */
+
+.prose {
+  text-wrap: pretty;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  scroll-margin-top: 1.5rem;
+}
+
+.prose h1 {
+  font-size: 1.875em;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75em 0;
+}
+
+/* An h1 that follows other content gets more air */
+.prose * + h1 {
+  margin-top: 1.6em;
+}
+
+.prose h2 {
+  font-size: 1.375em;
+  font-weight: 650;
+  line-height: 1.25;
+  margin: 1.9em 0 0.6em 0;
+}
+
+.prose h3 {
+  font-size: 1.125em;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 1.6em 0 0.5em 0;
+}
+
+.prose p {
+  margin: 0 0 1.05em 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1.05em 0;
+  padding-left: 1.4em;
+}
+
+.prose li {
+  margin: 0.3em 0;
+  padding-left: 0.15em;
+}
+
+.prose li::marker {
+  color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+}
+
+.prose ul > li::marker {
+  font-size: 0.85em;
+}
+
+.prose ol > li::marker {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin: 0.3em 0;
+}
+
+/* Task lists — checkbox sits on the first text line */
+.prose ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.1em;
+}
+
+.prose ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+  margin: 0.35em 0;
+  padding-left: 0;
+}
+
+.prose ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin: 0.24em 0 0 0;
+  line-height: 1;
+}
+
+.prose ul[data-type="taskList"] li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.prose ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--muted-foreground) 55%,
+    transparent
+  );
+}
+
+.prose ul[data-type="taskList"] input[type="checkbox"] {
+  cursor: pointer;
+  width: 0.95em;
+  height: 0.95em;
+  margin: 0;
+  accent-color: var(--sidebar-primary);
+}
+
+/* Blockquote — soft rail, quiet voice */
+.prose blockquote {
+  border-left: 2px solid
+    color-mix(in oklab, var(--foreground) 16%, transparent);
+  padding: 0.1em 0 0.1em 1.1em;
+  margin: 1.4em 0;
+  color: var(--muted-foreground);
+  font-style: normal;
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Inline code — quiet pill */
+.prose code {
+  background: color-mix(in oklab, var(--muted) 75%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 5px;
+  padding: 0.12em 0.38em;
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  font-weight: 450;
+  white-space: nowrap;
+}
+
+/* Code block — calm card */
+.prose pre {
+  background: var(--muted);
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 0.9em 1.1em;
+  margin: 1.4em 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.855em;
+  line-height: 1.7;
+}
+
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre;
+}
+
+/* Divider — barely there */
+.prose hr {
+  border: none;
+  height: 1px;
+  background: color-mix(in oklab, var(--border) 80%, transparent);
+  margin: 2.75em auto;
+  max-width: 88%;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  display: block;
+  margin: 1.4em 0;
+}
+
+/* Links + wikilinks — subtle color, breathing underline */
+.prose a,
+.prose .wikilink {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklab, var(--link) 38%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    text-decoration-color 120ms ease;
+}
+
+.prose .wikilink {
+  font-weight: 500;
+}
+
+.prose a:hover,
+.prose .wikilink:hover {
+  text-decoration-color: var(--link);
+}
+
+/* Strong / emphasis micro-typography */
+.prose strong {
+  font-weight: 650;
+}
+
+.prose mark {
+  background: color-mix(in oklab, var(--selection) 70%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 0.15em;
+}
+
+/* Editor selection — warm tint */
+.prose ::selection,
+.tiptap ::selection {
+  background: var(--selection);
+  color: var(--foreground);
 }
 
 /* ── Tiptap Editor Styles ── */
 .tiptap {
   height: 100%;
   outline: none;
-  padding: 48px 32px;
-  max-width: 720px;
-  margin: 0 auto;
-  font-size: 16px;
-  line-height: 1.75;
   caret-color: var(--foreground);
-}
-
-.tiptap p {
-  margin: 0 0 1em 0;
-}
-
-.tiptap p:last-child {
-  margin-bottom: 0;
-}
-
-.tiptap h1 {
-  font-size: 1.75em;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  margin: 1.5em 0 0.5em 0;
-  line-height: 1.3;
-}
-
-.tiptap h2 {
-  font-size: 1.4em;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  margin: 1.25em 0 0.5em 0;
-  line-height: 1.35;
-}
-
-.tiptap h3 {
-  font-size: 1.15em;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  margin: 1em 0 0.5em 0;
-  line-height: 1.4;
-}
-
-.tiptap ul,
-.tiptap ol {
-  margin: 0 0 1em 0;
-  padding-left: 1.5em;
-}
-
-.tiptap ul[data-type="taskList"] {
-  list-style: none;
-  padding-left: 0;
-}
-
-.tiptap ul[data-type="taskList"] li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
-}
-
-.tiptap ul[data-type="taskList"] li > label {
-  flex-shrink: 0;
-  margin-top: 0.3em;
-}
-
-.tiptap ul[data-type="taskList"] li > div {
-  flex: 1;
-}
-
-.tiptap ul[data-type="taskList"] input[type="checkbox"] {
-  cursor: pointer;
-  accent-color: var(--sidebar-primary);
-}
-
-.tiptap blockquote {
-  border-left: 3px solid var(--border);
-  padding-left: 1em;
-  margin: 0 0 1em 0;
-  color: var(--muted-foreground);
-  font-style: italic;
-}
-
-.tiptap pre {
-  background: var(--muted);
-  border-radius: 8px;
-  padding: 16px;
-  margin: 0 0 1em 0;
-  overflow-x: auto;
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-  line-height: 1.6;
-}
-
-.tiptap pre code {
-  background: none;
-  padding: 0;
-  font-size: inherit;
-  color: inherit;
-}
-
-.tiptap code {
-  background: var(--muted);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.9em;
-  font-family: var(--font-mono);
-}
-
-.tiptap hr {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 2em 0;
-}
-
-.tiptap img {
-  max-width: 100%;
-  border-radius: 8px;
-  display: block;
-  margin: 1em 0;
-}
-
-.tiptap a {
-  color: var(--sidebar-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-.tiptap a:hover {
-  opacity: 0.8;
-}
-
-.tiptap .wikilink {
-  color: var(--sidebar-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.tiptap .wikilink:hover {
-  opacity: 0.8;
 }
 
 /* Placeholder */
 .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--muted-foreground);
+  color: color-mix(in oklab, var(--muted-foreground) 75%, transparent);
   pointer-events: none;
   height: 0;
 }
 
-/* Selection */
-.tiptap ::selection {
-  background: var(--accent);
-}
-
 /* Bubble menu animation */
 .tippy-box {
-  animation: tippyFadeIn 0.1s ease-out;
+  animation: tippyFadeIn 0.12s ease-out;
 }
 
 @keyframes tippyFadeIn {
   from {
     opacity: 0;
     transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tippy-box {
+    animation: none;
+  }
+}
+
+/* ── Landing page texture (CSS only: gradient + grain) ── */
+
+.landing-hero-bg {
+  background-image:
+    radial-gradient(
+      ellipse 80% 55% at 50% -12%,
+      color-mix(in oklab, var(--link) 7%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 55% 42% at 82% 8%,
+      color-mix(in oklab, #6366f1 6%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 38% at 14% 4%,
+      color-mix(in oklab, #f59e0b 5%, transparent),
+      transparent 70%
+    );
+}
+
+.dark .landing-hero-bg {
+  background-image:
+    radial-gradient(
+      ellipse 80% 55% at 50% -12%,
+      color-mix(in oklab, var(--link) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 55% 42% at 82% 8%,
+      color-mix(in oklab, #818cf8 8%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 38% at 14% 4%,
+      color-mix(in oklab, #fbbf24 6%, transparent),
+      transparent 70%
+    );
+}
+
+.landing-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dark .landing-grain {
+  opacity: 0.28;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-fade-up {
+    animation: landingFadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .landing-fade-up-1 {
+    animation-delay: 80ms;
+  }
+  .landing-fade-up-2 {
+    animation-delay: 160ms;
+  }
+  .landing-fade-up-3 {
+    animation-delay: 240ms;
+  }
+}
+
+@keyframes landingFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
   }
   to {
     opacity: 1;

@@ -1,18 +1,30 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { toast } from "sonner"
 import { Sidebar } from "./Sidebar"
 import { TitleBar } from "./TitleBar"
 import { SyncStatusIndicator } from "./SyncStatus"
-import { TiptapEditor } from "../editor/TiptapEditor"
+import { WorkspaceHome } from "./WorkspaceHome"
+import { PanelHost, getPersistedActivePanel, persistActivePanel } from "./PanelHost"
+import { TiptapEditor, type TiptapEditorHandle } from "../editor/TiptapEditor"
 import { CommandPalette } from "../palette/CommandPalette"
 import { ConflictModal } from "../modals/ConflictModal"
 import { ProviderPicker } from "../modals/ProviderPicker"
 import { RepoPicker } from "../modals/RepoPicker"
 import { SettingsModal } from "../modals/SettingsModal"
+import { ExtensionsModal } from "../modals/ExtensionsModal"
+import { AIOptionsDialog } from "../modals/AIOptionsDialog"
 import { useVault } from "@/hooks/useVault"
+import { useNotesFolderActions } from "@/hooks/useNotesFolderActions"
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow"
 import { useSync } from "@/hooks/useSync"
 import { useStorage } from "@/hooks/useStorage"
+import { useExtensions } from "@/hooks/useExtensions"
+import { useAISettings } from "@/hooks/useAISettings"
+import { streamAICoWriter } from "@/core/ai/stream"
+import { initInstallListener } from "@/core/registry/installListener"
+import { loadCommunityExtensions } from "@/core/registry/communityLoader"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -20,7 +32,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { Plus, FileText, GitBranch } from "lucide-react"
+import { Plus, FileText, FolderOpen } from "lucide-react"
 
 export function AppShell() {
   const {
@@ -42,45 +54,213 @@ export function AppShell() {
     deleteFile,
   } = useVault({ remoteActive })
   const { status, unsyncedCount, flush } = useSync(activeProvider)
+  const { activeKey, provider, ollamaUrl } = useAISettings()
+  const { pickNotesFolder, isDesktop } = useNotesFolderActions()
+
+  // First-run onboarding: shown until the user completes it (flag persisted).
+  // Hydrated after mount to avoid an SSR/client mismatch (localStorage is
+  // only available client-side); until mounted we treat onboarding as done so
+  // server and first client render agree.
+  // null = not yet hydrated → render the stable shell so server and first
+  // client render agree; the flag is read once after mount.
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let done = true
+    try {
+      done =
+        window.localStorage.getItem("opennotes-onboarding-complete") === "true"
+    } catch {
+      done = true
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time post-mount hydration of the onboarding flag
+    setOnboardingDone(done)
+  }, [])
+
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [zenMode, setZenMode] = useState(false)
   const [commandOpen, setCommandOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [extensionsOpen, setExtensionsOpen] = useState(false)
+  const [aiOptionsOpen, setAiOptionsOpen] = useState(false)
   const [providerOpen, setProviderOpen] = useState(false)
   const [repoOpen, setRepoOpen] = useState(false)
+  const [view, setView] = useState<"editor" | "home">("editor")
+  const [activePanelId, setActivePanelId] = useState<string | null>(() =>
+    getPersistedActivePanel()
+  )
   const [conflict, setConflict] = useState<{
     path: string
     local: string
     remote: string
   } | null>(null)
 
+  const editorRef = useRef<TiptapEditorHandle>(null)
+
+  // Persist the active panel whenever it changes.
   useEffect(() => {
-    const handler = (e: Event) => {
+    persistActivePanel(activePanelId)
+  }, [activePanelId])
+
+  const activeContent = files.find((f) => f.path === activeFile)?.content ?? ""
+  const isHome = view === "home"
+
+  // ----- Editor <-> extension bridge handlers -----
+  const getActiveNote = useCallback(() => {
+    if (!activeFile || isHome) return null
+    return { path: activeFile, content: activeContent }
+  }, [activeFile, activeContent, isHome])
+
+  const getNotes = useCallback(
+    () => files.map((f) => ({ path: f.path, content: f.content })),
+    [files]
+  )
+
+  const openNote = useCallback(
+    (path: string) => {
+      setView("editor")
+      setActiveFile(path)
+    },
+    [setActiveFile]
+  )
+
+  const createNote = useCallback(
+    async (name?: string) => {
+      const path = await createFile(name)
+      setView("editor")
+      return path ?? null
+    },
+    [createFile]
+  )
+
+  const insertIntoActiveNote = useCallback(
+    (markdown: string) => {
+      if (editorRef.current && !isHome) {
+        editorRef.current.insertMarkdown(markdown)
+      } else if (activeFile && !isHome) {
+        void saveFile(activeFile, activeContent + markdown)
+      }
+    },
+    [activeFile, activeContent, isHome, saveFile]
+  )
+
+  const getSelection = useCallback(
+    () => editorRef.current?.getSelection() ?? "",
+    []
+  )
+
+  const replaceSelection = useCallback((markdown: string) => {
+    editorRef.current?.replaceSelection(markdown)
+  }, [])
+
+  const setActiveNoteContent = useCallback(
+    (markdown: string) => {
+      if (activeFile && !isHome) {
+        void saveFile(activeFile, markdown)
+        editorRef.current?.setMarkdown(markdown)
+      }
+    },
+    [activeFile, isHome, saveFile]
+  )
+
+  const showToast = useCallback((message: string) => {
+    toast(message)
+  }, [])
+
+  const ai = useMemo(
+    () => ({
+      available: () => provider === "ollama" || activeKey !== "",
+      complete: (prompt: string, options?: { system?: string }) =>
+        new Promise<string>((resolve, reject) => {
+          let acc = ""
+          streamAICoWriter({
+            provider,
+            apiKey: activeKey,
+            ollamaUrl,
+            prompt,
+            systemPrompt: options?.system,
+            onChunk: (c) => {
+              acc += c
+            },
+            onError: (e) => reject(new Error(e)),
+            onDone: () => resolve(acc),
+          })
+        }),
+    }),
+    [provider, activeKey, ollamaUrl]
+  )
+
+  const {
+    commands,
+    panels,
+    runCommand,
+    getAPI,
+  } = useExtensions({
+    getActiveNote,
+    getNotes,
+    openNote,
+    createNote,
+    getSelection,
+    replaceSelection,
+    insertIntoActiveNote,
+    setActiveNoteContent,
+    showToast,
+    ai,
+  })
+
+  // ----- Community extensions: load installed modules + listen for installs -----
+  useEffect(() => {
+    void loadCommunityExtensions()
+    const cleanup = initInstallListener({ showToast: (m) => toast(m) })
+    return cleanup
+  }, [])
+
+  // ----- Global listeners: conflicts + AI settings event -----
+  useEffect(() => {
+    const conflictHandler = (e: Event) => {
       const detail = (
         e as CustomEvent<{ path: string; local: string; remote: string }>
       ).detail
       setConflict(detail)
     }
-    window.addEventListener("sync-conflict", handler)
-    return () => window.removeEventListener("sync-conflict", handler)
+    const aiSettingsHandler = () => setAiOptionsOpen(true)
+    window.addEventListener("sync-conflict", conflictHandler)
+    window.addEventListener("open-ai-settings", aiSettingsHandler)
+    return () => {
+      window.removeEventListener("sync-conflict", conflictHandler)
+      window.removeEventListener("open-ai-settings", aiSettingsHandler)
+    }
   }, [])
 
+  // ----- Keyboard shortcuts -----
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      const mod = e.metaKey || e.ctrlKey
+      if (mod && e.key === "k") {
         e.preventDefault()
         setCommandOpen((prev) => !prev)
         return
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+      if (mod && e.shiftKey && (e.key === "z" || e.key === "Z")) {
         e.preventDefault()
         setZenMode((prev) => !prev)
         return
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+      if (mod && e.key === "n") {
         e.preventDefault()
+        setView("editor")
         void createFile()
+        return
+      }
+      if (mod && e.shiftKey && (e.key === "h" || e.key === "H")) {
+        e.preventDefault()
+        setView((prev) => (prev === "home" ? "editor" : "home"))
+        return
+      }
+      if (mod && e.key === ",") {
+        e.preventDefault()
+        setSettingsOpen((prev) => !prev)
         return
       }
       if (e.key === "Escape") {
@@ -96,14 +276,55 @@ export function AppShell() {
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [commandOpen, zenMode, createFile])
+  }, [commandOpen, zenMode, createFile, setActiveFile])
 
   const handleSave = useCallback(() => {
     void flush()
   }, [flush])
 
-  const activeContent = files.find((f) => f.path === activeFile)?.content ?? ""
+  const goHome = useCallback(() => setView("home"), [])
 
+  // Pick a notes folder from disk (native picker in the Mac app; in the
+  // browser pickNotesFolder explains that folders work best on Mac).
+  const handleOpenFolder = useCallback(() => {
+    void pickNotesFolder()
+  }, [pickNotesFolder])
+
+  // ----- Onboarding completion -----
+  const completeOnboarding = useCallback(() => {
+    try {
+      window.localStorage.setItem("opennotes-onboarding-complete", "true")
+    } catch {
+      // non-fatal
+    }
+    setOnboardingDone(true)
+  }, [])
+
+  // Local path / skip: create the first note and finish onboarding.
+  const handleOnboardingStartWriting = useCallback(() => {
+    completeOnboarding()
+    void createFile()
+  }, [completeOnboarding, createFile])
+
+  // Folder / folder+git path: the folder is already set by pickNotesFolder
+  // inside the flow; just finish onboarding (the vault reconciles on its own).
+  const handleOnboardingFolderChosen = useCallback(() => {
+    completeOnboarding()
+  }, [completeOnboarding])
+
+  // ----- First-run onboarding gate -----
+  if (onboardingDone === false && files.length === 0) {
+    return (
+      <OnboardingFlow
+        isDesktop={isDesktop}
+        pickNotesFolder={pickNotesFolder}
+        onStartWriting={handleOnboardingStartWriting}
+        onFolderChosen={handleOnboardingFolderChosen}
+      />
+    )
+  }
+
+  // ----- First-run empty state (onboarding done, no notes yet) -----
   if (files.length === 0) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-background transition-colors duration-300">
@@ -113,34 +334,32 @@ export function AppShell() {
           </div>
           <div className="space-y-2">
             <h1 className="text-lg font-medium text-foreground">
-              No files yet
+              Start writing
             </h1>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Create your first note to get started. Everything is saved locally
-              in your browser.
+              Create your first note. Everything is saved locally in your
+              browser — no account, no server.
             </p>
           </div>
           <Button onClick={() => void createFile()} className="gap-2">
             <Plus className="h-4 w-4" />
-            Create first file
+            Create first note
           </Button>
           <p className="text-xs text-muted-foreground">
             Press{" "}
             <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
               Ctrl+N
             </kbd>{" "}
-            to create a file
+            to create a note
           </p>
-          {remoteEnabled && (
-            <Button
-              variant="outline"
-              onClick={() => setRepoOpen(true)}
-              className="gap-2"
-            >
-              <GitBranch className="h-4 w-4" />
-              Sync to GitHub
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            onClick={handleOpenFolder}
+            className="gap-2"
+          >
+            <FolderOpen className="h-4 w-4" />
+            Connect a notes folder
+          </Button>
         </div>
         {remoteEnabled && (
           <>
@@ -177,9 +396,17 @@ export function AppShell() {
           <Sidebar
             files={files}
             activeFile={activeFile}
-            onSelect={setActiveFile}
-            onCreate={() => void createFile()}
+            onSelect={(path) => {
+              setView("editor")
+              setActiveFile(path)
+            }}
+            onCreate={() => {
+              setView("editor")
+              void createFile()
+            }}
             onDelete={(path) => void deleteFile(path)}
+            onOpenHome={goHome}
+            isHomeActive={isHome}
           />
         </div>
       )}
@@ -193,14 +420,21 @@ export function AppShell() {
             files={files}
             activeFile={activeFile}
             onSelect={(path) => {
+              setView("editor")
               setActiveFile(path)
               setMobileSheetOpen(false)
             }}
             onCreate={() => {
+              setView("editor")
               void createFile()
               setMobileSheetOpen(false)
             }}
             onDelete={(path) => void deleteFile(path)}
+            onOpenHome={() => {
+              goHome()
+              setMobileSheetOpen(false)
+            }}
+            isHomeActive={isHome}
           />
         </SheetContent>
       </Sheet>
@@ -208,14 +442,17 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         {!zenMode && (
           <TitleBar
-            path={activeFile}
+            path={isHome ? null : activeFile}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             onToggleMobileSidebar={() => setMobileSheetOpen(true)}
             onToggleZen={() => setZenMode(true)}
             onOpenSettings={() => setSettingsOpen(true)}
+            onOpenExtensions={() => setExtensionsOpen(true)}
+            onOpenAI={() => setAiOptionsOpen(true)}
             onRename={(newPath) => {
-              if (activeFile) void renameFile(activeFile, newPath)
+              if (activeFile && !isHome) void renameFile(activeFile, newPath)
             }}
+            homeActive={isHome}
           >
             <SyncStatusIndicator
               status={status}
@@ -238,16 +475,49 @@ export function AppShell() {
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden">
-          <TiptapEditor
-            docKey={activeFile ?? "none"}
-            content={activeContent}
-            onChange={(content) => {
-              if (activeFile) saveFile(activeFile, content)
-            }}
-            onSave={handleSave}
-            onNavigate={setActiveFile}
-          />
+        <div className="flex min-w-0 flex-1 overflow-hidden">
+          <div className="min-w-0 flex-1 overflow-hidden">
+            {isHome ? (
+              <WorkspaceHome
+                files={files.map((f) => ({
+                  path: f.path,
+                  content: f.content,
+                  lastModified: f.lastModified,
+                }))}
+                onSelectFile={(path) => {
+                  setView("editor")
+                  setActiveFile(path)
+                }}
+                onCreateFile={async (name) => {
+                  const p = await createFile(name)
+                  setView("editor")
+                  return p
+                }}
+                onSaveFile={saveFile}
+              />
+            ) : (
+              <TiptapEditor
+                key={activeFile ?? "none"}
+                ref={editorRef}
+                docKey={activeFile ?? "none"}
+                content={activeContent}
+                onChange={(content) => {
+                  if (activeFile) saveFile(activeFile, content)
+                }}
+                onSave={handleSave}
+                onNavigate={setActiveFile}
+              />
+            )}
+          </div>
+
+          {!zenMode && (
+            <PanelHost
+              panels={panels}
+              getAPI={getAPI}
+              activePanelId={activePanelId}
+              onActivePanelChange={setActivePanelId}
+            />
+          )}
         </div>
       </div>
 
@@ -256,11 +526,20 @@ export function AppShell() {
           open={commandOpen}
           onClose={() => setCommandOpen(false)}
           files={files}
-          onSelectFile={setActiveFile}
+          onSelectFile={(path) => {
+            setView("editor")
+            setActiveFile(path)
+          }}
           onCreateFile={createFile}
           onSync={handleSave}
           remoteEnabled={remoteEnabled}
           onOpenStorage={() => setProviderOpen(true)}
+          onOpenHome={goHome}
+          onOpenExtensions={() => setExtensionsOpen(true)}
+          onOpenFolder={handleOpenFolder}
+          onSwitchFolder={handleOpenFolder}
+          extensionCommands={commands}
+          onRunExtensionCommand={(id) => void runCommand(id)}
         />
       )}
 
@@ -281,6 +560,24 @@ export function AppShell() {
           setSettingsOpen(false)
         }}
         onSyncNow={handleSave}
+        onOpenExtensions={() => {
+          setSettingsOpen(false)
+          setExtensionsOpen(true)
+        }}
+        onOpenAI={() => {
+          setSettingsOpen(false)
+          setAiOptionsOpen(true)
+        }}
+      />
+
+      <ExtensionsModal
+        open={extensionsOpen}
+        onClose={() => setExtensionsOpen(false)}
+      />
+
+      <AIOptionsDialog
+        open={aiOptionsOpen}
+        onClose={() => setAiOptionsOpen(false)}
       />
 
       {remoteEnabled && (

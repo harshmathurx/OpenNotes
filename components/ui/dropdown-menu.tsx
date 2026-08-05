@@ -59,15 +59,24 @@ function DropdownMenuLabel({
   inset?: boolean
 }) {
   return (
-    <MenuPrimitive.GroupLabel
-      data-slot="dropdown-menu-label"
-      data-inset={inset}
-      className={cn(
-        "px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7",
-        className
-      )}
-      {...props}
-    />
+    // Base UI's Menu.GroupLabel throws ("MenuGroupRootContext is missing")
+    // when rendered outside a Menu.Group, and that exception unmounts the app
+    // (seen as a hard "Application error" crash when a menu opens in the
+    // Tauri webview). Giving every label its own implicit group keeps a bare
+    // <DropdownMenuLabel> safe while preserving identical semantics: the
+    // group renders an unstyled div with role="group" + aria-labelledby.
+    // An explicit outer <DropdownMenuGroup> still wins (contexts nest).
+    <MenuPrimitive.Group>
+      <MenuPrimitive.GroupLabel
+        data-slot="dropdown-menu-label"
+        data-inset={inset}
+        className={cn(
+          "px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7",
+          className
+        )}
+        {...props}
+      />
+    </MenuPrimitive.Group>
   )
 }
 
