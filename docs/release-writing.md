@@ -1,83 +1,75 @@
-# Release writing guide
+# Release writing
 
-Release notes are the public face of OpenNotes. They should read like a careful maintainer explaining what changed and why it matters, not like an internal build receipt.
+Release notes are for users, contributors, and future maintainers. They are not a build log.
 
-## Audience
+Write the thing a careful maintainer would want to read six months from now: what changed, who it affects, and what to watch for.
 
-Write for three people at once:
+## Rules
 
-1. **Users** deciding whether to download the build.
-2. **Contributors** trying to understand the product direction.
-3. **Future maintainers** scanning history months later.
+- Lead with the user-visible change.
+- Keep patch releases short.
+- Use sections only when they have real content.
+- Mention breaking changes, security fixes, migrations, and signing limits near the top.
+- Link PRs or issues when they help trace the change.
+- Do not publish local paths, Slack context, private notes, or command transcripts.
+- Do not make a small release sound large.
 
-Internal notes can mention exact commands, Slack context, local paths, and operational detail. Public release notes should not.
+## Common shapes
 
-## Shape
-
-Use this structure unless the release is tiny:
+### Focused patch
 
 ```md
 # OpenNotes vX.Y.Z
 
-One short paragraph about the release in product language.
+One sentence saying what this release fixes.
 
-## Highlights
+## Fixed
 
-- User-visible outcome.
-- Contributor-visible improvement.
-- Integrity or compatibility note, if relevant.
-
-## Why it matters
-
-A few sentences explaining the product or trust reason behind the change.
+- Fixed the observable problem. Add the technical route only if it helps users or maintainers.
 
 ## Download
 
 - macOS Apple Silicon: `OpenNotes_X.Y.Z_aarch64.dmg`
-- Checksum: `OpenNotes_X.Y.Z_aarch64.dmg.sha256`
+- SHA-256 checksum: `OpenNotes_X.Y.Z_aarch64.dmg.sha256`
 
-## macOS signing note
+## macOS note
 
-Be honest about signing and notarization. Do not bury Gatekeeper caveats.
-
-## Verification
-
-Short list of the meaningful checks, not a raw terminal diary.
+State signing and notarization status plainly.
 ```
 
-## Good release notes sound like
+### Larger release
 
-- specific
-- calm
-- user-facing
-- honest about limitations
-- proud without sounding inflated
-- grounded in product behavior
+```md
+# OpenNotes vX.Y.Z
 
-## Avoid
+Short product-level summary.
 
-- internal chat context
-- local file paths
-- full commit SHAs unless needed for traceability
-- “I ran...” / “Jeeves did...”
-- long command transcripts
-- calling a release a preview unless GitHub marks it as pre-release
-- burying macOS signing caveats
+## Added
+## Changed
+## Fixed
+## Security
+## Known issues
+## Download
+```
 
-## Examples
+Skip empty sections.
 
-Good:
+## Examples to learn from
 
-> Report a bug now works in the Mac app. The command opens a prefilled GitHub issue in the system browser, so users can send useful reports without hunting through the repository.
+- Rust and React keep small patch releases small.
+- Electron groups changes by `Features`, `Fixes`, and `Other Changes`, with PR links.
+- GitHub CLI leads with security and upgrade urgency when the release contains security fixes.
+- Node.js puts notable changes first, then commit-level detail for maintainers.
+- Keep a Changelog is right about the big rule: do not dump git logs into release notes.
 
-Bad:
+## Before publishing
 
-> Ran cargo check, built the DMG from commit abc123, mounted it locally, and uploaded it after fixing the branch.
+Read the draft once with the `humanizer` lens:
 
-Good:
+- Cut inflated lines like "this release tightens the loop" if a plain sentence works.
+- Remove sermonizing about open source unless the release genuinely needs it.
+- Avoid rule-of-three lists, heavy bolding, and generic "why it matters" paragraphs.
+- Replace vague value claims with observable behavior.
+- Keep the known limitations visible.
 
-> Open-source software earns trust in small places. A bug-report button that does nothing is exactly the kind of paper cut that makes a project feel unfinished.
-
-Bad:
-
-> Fixed bug report button. CI passed.
+A good release note should survive being read by someone who has no idea who built it or what happened in private chat.
