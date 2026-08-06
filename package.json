@@ -1,6 +1,6 @@
 {
   "name": "opennotes",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "A calm, open-source, local-first markdown workspace. Your notes. Real files. Your storage. Your AI.",
   "author": "Harsh Mathur",
