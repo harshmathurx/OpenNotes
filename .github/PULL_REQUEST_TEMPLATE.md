@@ -1,27 +1,47 @@
-<!-- Thanks for contributing. Keep the change minimal and focused — one concern per PR. -->
+<!--
+Write for maintainers and future contributors. Keep it public, specific, and calm.
+This is not an internal status report. No Slack context, no private notes, no "Jeeves did X".
+-->
 
-## What
+## Summary
 
-<!-- A short description of the change and the problem it solves. Link the issue if one exists. -->
+<!-- What changed, in one or two sentences. Lead with the user-visible outcome when there is one. -->
 
-## How
+## Why
 
-<!-- The approach in a sentence or two. Note anything you deliberately did NOT do. -->
+<!-- What problem does this solve? What was awkward, broken, risky, or missing before? -->
+
+## What changed
+
+<!-- Prefer concrete bullets over a narrative dump. -->
+
+-
+
+## Screenshots or demo
+
+<!-- Add screenshots, short clips, or before/after notes for UI changes. Write "N/A" for non-UI changes. -->
 
 ## Validation
 
-Ran and passing:
+<!-- Check every command you actually ran. Add or remove lines as needed. -->
 
-- [ ] `pnpm exec eslint .`
-- [ ] `pnpm exec tsc --noEmit`
+- [ ] `pnpm run typecheck`
+- [ ] `pnpm run lint`
 - [ ] `pnpm exec vitest run`
-- [ ] `pnpm exec next build`
+- [ ] `pnpm run build`
+- [ ] `cargo check --manifest-path src-tauri/Cargo.toml`
+- [ ] manual app check, if this touches the desktop shell
 
-<!-- Add tests for new logic where practical (pure, framework-free functions are easiest). -->
+## Release note
 
-## Checklist
+<!-- If this ships to users, write the public-facing line here. If not, write "N/A". -->
 
-- [ ] Local-first preserved: nothing here uploads notes, requires an account, or adds telemetry.
-- [ ] No secrets, tokens, or generated artifacts (`src-tauri/target`, `.next`, `dist`) committed.
-- [ ] No emojis in UI or code; terminology is "notes folder" / "workspace".
-- [ ] Docs updated if behavior or the extension API changed.
+>
+
+## Contributor checklist
+
+- [ ] The change preserves OpenNotes' local-first promise: no account, backend, telemetry, or hidden custody of user data.
+- [ ] No secrets, tokens, private files, or generated build artifacts are committed.
+- [ ] Behavior that can regress has test coverage.
+- [ ] Public copy is written for users and contributors, not as an internal handoff note.
+- [ ] Docs were updated if behavior, setup, release flow, or the extension API changed.
