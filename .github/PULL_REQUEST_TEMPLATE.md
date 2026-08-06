@@ -11,9 +11,9 @@ This is not an internal status report. No Slack context, no private notes, no "J
 
 <!-- What problem does this solve? What was awkward, broken, risky, or missing before? -->
 
-## What changed
+## Changes
 
-<!-- Prefer concrete bullets over a narrative dump. -->
+<!-- Concrete bullets. Keep this factual. -->
 
 -
 
