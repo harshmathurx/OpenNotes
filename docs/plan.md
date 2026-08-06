@@ -145,8 +145,8 @@ Each phase is designed to be picked up and executed by an agent independently. P
 ### Step 1.1: Initialize Next.js
 
 ```bash
-mkdir -p /Users/harsh.rajmathur/Desktop/harsh-builds/personal-editor-thoughts
-# Already exists, just scaffold inside it
+mkdir -p opennotes
+cd opennotes
 echo "my-app" | npx shadcn@latest init --yes --template next --base-color stone
 ```
 
@@ -155,7 +155,6 @@ This creates `src/app/page.tsx`, `src/components/ui/`, `tailwind.config.ts`, `co
 ### Step 1.2: Install core dependencies
 
 ```bash
-cd /Users/harsh.rajmathur/Desktop/harsh-builds/personal-editor-thoughts
 pnpm add dexie @codemirror/view @codemirror/state @codemirror/lang-markdown \
   @codemirror/commands @codemirror/language @octokit/rest dropbox \
   lucide-react cmdk

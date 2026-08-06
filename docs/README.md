@@ -2,7 +2,8 @@
 
 ## Current
 
-- [extensions.md](extensions.md) — how to build an OpenNotes extension: the manifest + `activate(ctx)` contract, available APIs, and the bundled reference extensions. Start here if you want to contribute.
+- [architecture.md](architecture.md) — maintainer map of the app shell, core services, extensions, and Tauri boundary. Start here before changing code.
+- [extensions.md](extensions.md) — how to build an OpenNotes extension: the manifest + `activate(ctx)` contract, available APIs, and the bundled reference extensions.
 - [prd-opennotes-next.md](prd-opennotes-next.md) — the product north star: what OpenNotes is, what it refuses to be, and where it's going.
 - [design/](design/) — design explorations: research, structure, principles, visual language, voice and tone, components, and ship criteria.
 
