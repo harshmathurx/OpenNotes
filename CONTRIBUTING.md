@@ -1,51 +1,67 @@
 # Contributing to OpenNotes
 
-Thanks for your interest. OpenNotes is a calm, open-source, local-first markdown workspace — **your files, your AI, your aesthetic, no account, no server.** We keep the core small and excellent, and we grow capability through extensions.
+Thanks for wanting to help. OpenNotes is small on purpose: local-first notes, real files, user-owned sync, opt-in AI, no telemetry.
 
-## The philosophy
+Good contributions make that promise sharper.
 
-- **Local-first, always.** Every keystroke lands locally before anything syncs. Never break this.
-- **No custody of secrets.** We never hold a user's token, key, or password. Git sync uses the user's own local git (Mac app); AI uses the user's own key, encrypted on device.
-- **Small core, deep extensions.** If a feature isn't universal, it's an extension. See `docs/extensions.md`.
-- **Cut the feature, keep the polish.** A smaller thing done beautifully beats a larger thing done roughly.
+## Before opening a PR
 
-## Ways to contribute
+- Keep one concern per PR.
+- Prefer small, reviewable changes over sweeping rewrites.
+- Add tests for behavior that can regress.
+- Do not commit generated build output, private files, tokens, API keys, or screenshots containing note content.
+- If a feature needs a server, account, analytics, hosted sync, or token custody, open an issue first.
 
-1. **Build an extension** — the highest-leverage contribution. Read `docs/extensions.md`, copy `extensions/_starter/`, and open a PR. Templates, backlinks, export, Git Sync, and the AI Co-Writer are the reference patterns.
-2. **Fix bugs** — reproduce first, add a failing test, fix, keep it minimal.
-3. **Improve the core** — editor, storage, sync. These changes face the highest bar; open an issue to discuss before a large PR.
-4. **Documentation & design** — clarity and calm are features here.
+## Useful contribution lanes
 
-## Setup
+- Bug fixes with a clear reproduction.
+- Extension ideas and extension API improvements.
+- Reliability work around storage, sync, import/export, and desktop shell behavior.
+- Documentation that helps users understand where their data lives.
+- UI polish that makes the app calmer without making it louder.
+
+## Local setup
 
 ```bash
 corepack enable
 pnpm install
-pnpm dev          # http://localhost:3000
+pnpm dev
 ```
 
-## Before you open a PR
+For the Mac app:
 
 ```bash
-pnpm exec tsc --noEmit     # types clean
-pnpm exec eslint .         # lint clean
-pnpm exec vitest run       # all tests green
-pnpm exec next build       # builds
+pnpm tauri:dev
 ```
 
-- Add tests for new logic (pure functions are easiest — keep them framework-free).
-- Match the existing code style (Prettier + Tailwind, no emojis in UI or code).
-- Keep changes minimal and focused; one concern per PR.
-- Do not commit secrets, tokens, or large generated artifacts (`src-tauri/target`, `.next`, `dist`).
+## Validation
 
-## Commit style
+Run the checks that match your change. For most PRs:
 
-Short, imperative, scoped where useful: `fix: stabilize panel toggle`, `feat: add backlinks panel`, `docs: extension guide`. No force-pushes to shared branches.
+```bash
+pnpm run typecheck
+pnpm run lint
+pnpm exec vitest run
+pnpm run build
+```
 
-## Code of conduct
+For desktop/Tauri changes, also run:
 
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). Be kind, be direct, assume good intent. We're building something people trust with their words — act like it.
+```bash
+cargo check --manifest-path src-tauri/Cargo.toml
+```
 
-## License
+## Writing the PR
 
-Apache-2.0. By contributing, you agree your contributions are licensed under the same.
+The PR should explain:
+
+1. What changed.
+2. Why it matters.
+3. How you validated it.
+4. Whether it affects local-first behavior, storage, sync, secrets, or the extension API.
+
+Public PRs are not internal status notes. Write for the next contributor who lands here from search six months from now.
+
+## Release notes
+
+If your change ships to users, add a short public-facing release note in the PR. Use `docs/release-writing.md` for the project style.

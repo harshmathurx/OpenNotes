@@ -6,32 +6,38 @@ labels: bug
 assignees: ""
 ---
 
-**Describe the bug**
-A clear, concise description of what went wrong.
+Thanks for taking the time to report this. Good bug reports make OpenNotes better for everyone.
 
-**To reproduce**
-Steps to reproduce the behavior:
+## What happened?
 
-1. Go to "..."
-2. Click on "..."
-3. See error
+<!-- Describe the broken behavior. What did you see? -->
 
-**Expected behavior**
-What you expected to happen.
+## Steps to reproduce
 
-**Screenshots**
-If applicable, add screenshots to help explain the problem.
+<!-- Make this as mechanical as possible. A maintainer should be able to follow it without guessing. -->
 
-**Environment**
+1.
+2.
+3.
 
-- Surface: <!-- web app / Mac app -->
-- OS and version: <!-- e.g. macOS 15.4, Windows 11 -->
-- Browser (web app only): <!-- e.g. Chrome 126, Safari 17 -->
-- OpenNotes version or commit: <!-- e.g. 0.1.0, or the commit SHA -->
+## Expected behavior
 
-**Data safety check**
+<!-- What should have happened instead? -->
 
-- [ ] This bug does not involve loss or corruption of my notes (if it does, say so explicitly at the top — those reports get priority).
+## Environment
 
-**Additional context**
-Anything else relevant: console errors, whether it happens in a fresh browser profile, etc.
+- Surface: <!-- Mac app / web build -->
+- OpenNotes version: <!-- e.g. 0.1.2 -->
+- OS and version: <!-- e.g. macOS 15.4 -->
+- Browser, if using the web build: <!-- e.g. Chrome 126, Safari 17 -->
+
+## Data safety
+
+<!-- If notes were lost, corrupted, duplicated, or synced incorrectly, say that clearly here. These reports get priority. -->
+
+- [ ] This involves possible note loss, corruption, duplication, or sync damage.
+- [ ] This is a UI or behavior issue only; my notes are safe.
+
+## Screenshots, logs, or notes
+
+<!-- Screenshots, console errors, and short screen recordings help. Please remove private note content, tokens, or keys before uploading. -->
