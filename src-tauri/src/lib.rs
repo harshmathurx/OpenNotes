@@ -1,3 +1,4 @@
+mod feedback;
 mod fs;
 mod git;
 mod secrets;
@@ -7,6 +8,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            feedback::open_external_url,
             git::run_git,
             git::git_available,
             secrets::set_secret,

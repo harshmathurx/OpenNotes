@@ -5,6 +5,8 @@
  * are the two things a maintainer always needs to reproduce a bug.
  */
 
+import { isTauri, safeInvoke } from "@/core/bridge/runtime"
+
 const REPO = "https://github.com/harshmathurx/OpenNotes"
 const BUG_TEMPLATE = "bug_report.md"
 
@@ -14,7 +16,7 @@ function appVersion(): string {
   if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_APP_VERSION) {
     return process.env.NEXT_PUBLIC_APP_VERSION
   }
-  return "0.1.0"
+  return "0.1.1"
 }
 
 function platform(): string {
@@ -27,7 +29,7 @@ function platform(): string {
 }
 
 function isDesktopApp(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+  return isTauri()
 }
 
 /**
@@ -59,8 +61,24 @@ export function buildBugReportURL(extra?: { summary?: string }): string {
   return `${REPO}/issues/new?${params.toString()}`
 }
 
-/** Open the report-a-bug flow in a new tab. No-op in non-browser envs. */
-export function openBugReport(): void {
-  if (typeof window === "undefined") return
-  window.open(buildBugReportURL(), "_blank", "noopener,noreferrer")
+/** Open the report-a-bug flow in the system browser. */
+export async function openBugReport(): Promise<boolean> {
+  if (typeof window === "undefined") return false
+
+  const url = buildBugReportURL()
+
+  if (isTauri()) {
+    try {
+      await safeInvoke("open_external_url", { url })
+      return true
+    } catch (error) {
+      console.warn("[opennotes] Failed to open bug report via Tauri", error)
+    }
+  }
+
+  const opened = window.open(url, "_blank", "noopener,noreferrer")
+  if (opened) return true
+
+  window.location.assign(url)
+  return true
 }
